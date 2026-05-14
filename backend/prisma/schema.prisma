@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── BUSINESS ───────────────────────────────────────────────────────────────
+
+model Business {
+  id               String            @id @default(uuid())
+  name             String
+  specialisation   String?
+  location         String?
+  email            String?           @unique
+  phone            String?
+  website          String?
+  contactFirstName String?
+  contactLastName  String?
+  services         String?
+  awards           String?
+  yearsExperience  String?
+  status           BusinessStatus    @default(NEW)
+  unsubscribed     Boolean           @default(false)
+  imageUrl         String?           // Generated once by Nano Banana Pro at scrape time
+  customAttrs      Json?             // Flexible key-value store — never add columns for one-off fields
+  scrapedAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  emails           Email[]
+  notifications    Notification[]
+  campaignJobs     BulkCampaignJob[]
+  queryResult      QueryResult?
+}
+
+enum BusinessStatus {
+  NEW
+  EMAIL_SENT
+  AWAITING_REPLY
+  FOLLOW_UP_SENT
+  REPLIED
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+// ─── EMAILS (conversation thread) ───────────────────────────────────────────
+
+model Email {
+  id             String    @id @default(uuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id])
+  direction      Direction
+  subject        String
+  bodyHtml       String
+  offerId        String?
+  offer          Offer?    @relation(fields: [offerId], references: [id])
+  gmailMessageId String?   // For threading Gmail replies
+  gmailThreadId  String?
+  sentAt         DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+}
+
+enum Direction {
+  SENT
+  RECEIVED
+}
+
+// ─── OFFERS ─────────────────────────────────────────────────────────────────
+
+model Offer {
+  id              String         @id @default(uuid())
+  name            String
+  headline        String
+  discountPercent Int?
+  durationLabel   String?
+  ctaText         String?
+  bodyNotes       String?        // Extra context passed to AI when generating offer emails
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  emails          Email[]
+  campaigns       BulkCampaign[]
+}
+
+// ─── QUERIES ─────────────────────────────────────────────────────────────────
+
+model Query {
+  id           String        @id @default(uuid())
+  text         String
+  ranAt        DateTime      @default(now())
+  resultsCount Int           @default(0)
+  status       QueryStatus   @default(PENDING)
+
+  results      QueryResult[]
+}
+
+enum QueryStatus {
+  PENDING
+  RUNNING
+  COMPLETE
+  FAILED
+}
+
+model QueryResult {
+  id           String    @id @default(uuid())
+  queryId      String
+  query        Query     @relation(fields: [queryId], references: [id])
+  url          String
+  businessName String?
+  flagged      Boolean   @default(false)  // true = directory or irrelevant
+  flagReason   String?
+  scrapedAt    DateTime?
+  businessId   String?   @unique
+  business     Business? @relation(fields: [businessId], references: [id])
+  createdAt    DateTime  @default(now())
+}
+
+// ─── BULK CAMPAIGNS ──────────────────────────────────────────────────────────
+
+model BulkCampaign {
+  id           String         @id @default(uuid())
+  name         String?
+  offerId      String?
+  offer        Offer?         @relation(fields: [offerId], references: [id])
+  status       CampaignStatus @default(QUEUED)
+  totalCount   Int
+  sentCount    Int            @default(0)
+  failedCount  Int            @default(0)
+  skippedCount Int            @default(0)
+  delaySeconds Int            @default(30) // Gap between sends to respect Gmail limits
+  createdAt    DateTime       @default(now())
+  completedAt  DateTime?
+
+  jobs         BulkCampaignJob[]
+}
+
+enum CampaignStatus {
+  QUEUED
+  RUNNING
+  COMPLETE
+  PARTIAL_FAIL
+}
+
+model BulkCampaignJob {
+  id           String       @id @default(uuid())
+  campaignId   String
+  campaign     BulkCampaign @relation(fields: [campaignId], references: [id])
+  businessId   String
+  business     Business     @relation(fields: [businessId], references: [id])
+  status       JobStatus    @default(PENDING)
+  errorMessage String?
+  processedAt  DateTime?
+}
+
+enum JobStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED  // e.g. already unsubscribed, or missing email address
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+
+model Notification {
+  id         String           @id @default(uuid())
+  type       NotificationType
+  businessId String?
+  business   Business?        @relation(fields: [businessId], references: [id])
+  emailId    String?
+  message    String
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+}
+
+enum NotificationType {
+  REPLY_RECEIVED
+  SEND_FAILED
+  SCRAPE_COMPLETE
+  UNSUBSCRIBED
+  CAMPAIGN_COMPLETE
+}
+
+// ─── OWNER PROFILE ───────────────────────────────────────────────────────────
+
+model OwnerProfile {
+  id             String   @id @default(uuid())
+  companyName    String
+  senderEmail    String
+  senderName     String
+  specialisation String?
+  services       Json?    // Array of service name strings
+  signatureHtml  String?
+  logoUrl        String?
+  updatedAt      DateTime @updatedAt
+}
