@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
-import { generateBusinessImage } from '../lib/imageGen.js';
 
 const router = Router();
 
@@ -64,13 +63,6 @@ router.post('/scrape-complete', async (req, res, next) => {
         where: { id: r.queryResultId },
         data: { businessId: business.id, scrapedAt: new Date() },
       });
-
-      // Generate image in background — don't block the webhook response
-      generateBusinessImage(business.name, business.specialisation)
-        .then((imageUrl) =>
-          prisma.business.update({ where: { id: business.id }, data: { imageUrl } })
-        )
-        .catch(console.error);
 
       await prisma.notification.create({
         data: {

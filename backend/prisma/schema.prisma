@@ -24,7 +24,7 @@ model Business {
   yearsExperience  String?
   status           BusinessStatus    @default(NEW)
   unsubscribed     Boolean           @default(false)
-  imageUrl         String?           // Generated once by Nano Banana Pro at scrape time
+  imageUrl         String?
   customAttrs      Json?             // Flexible key-value store — never add columns for one-off fields
   scrapedAt        DateTime?
   createdAt        DateTime          @default(now())
