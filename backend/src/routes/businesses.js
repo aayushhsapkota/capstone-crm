@@ -6,6 +6,7 @@ const router = Router();
 // GET /api/businesses
 router.get('/', async (req, res, next) => {
   try {
+    //test deployment
     const { status, unsubscribed, search, page = 1, limit = 50 } = req.query;
     const where = {};
 
