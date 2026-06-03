@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/my-repo/backend
+            cd ~/carbonelle-crm/backend
             git pull origin main
             npm install --production
             pm2 reload my-app
