@@ -1,0 +1,319 @@
+{
+  "name": "Website Scrape",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scrape-websites",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        176
+      ],
+      "id": "8abbf25e-ebfb-400d-a3d3-995b486c86c9",
+      "name": "Webhook",
+      "webhookId": "scrape-websites"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.body.results;\nreturn results.map((r) => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        176
+      ],
+      "id": "ecdacb6c-723b-4bbb-92dd-8b2d5a951e01",
+      "name": "Split URLs into Items"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        176
+      ],
+      "id": "89e296af-7502-4087-8e15-1828dfb385a2",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        912,
+        400
+      ],
+      "id": "ae5735ac-c479-4d7e-aaf0-b2ad5e03fefe",
+      "name": "Gemini Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. Focus only on factual and verifiable details.\n\nFields to extract (leave blank or null if not present):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output strictly factual — do not assume, guess, or invent information.\n2. Only use information visible in the markdown content.\n3. Output ONLY the JSON object; do not include explanations or extra text.\n\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": []
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        896,
+        176
+      ],
+      "id": "0d6ae538-79eb-4003-bb5b-74221fe9e06e",
+      "name": "AI Extract Business Data",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"name\": \"ABC Clinic\",\n  \"specialisation\": \"Dental Clinic\",\n  \"location\": \"Sydney, NSW\",\n  \"phone\": \"\",\n  \"email\": \"contact@abcclinic.com\",\n  \"yearsExperience\": \"10+\",\n  \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n  \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        400
+      ],
+      "id": "35febd06-0574-4790-9dd4-c701cdd3b808",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const extracted = $input.first().json.output;\nconst queryResultId = $('Split URLs into Items').item.json.id;\nreturn [{\n  json: {\n    queryResultId,\n    ...extracted\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        304
+      ],
+      "id": "7c865fb6-2b2b-40bb-a4a6-22e9a3e7c8d3",
+      "name": "Attach queryResultId"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Scrape complete', count: $('Aggregate Results').first().json.results.length }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1104,
+        -16
+      ],
+      "id": "bbd2f430-0e94-436a-9ebd-1d4b93de4889",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all processed items into a single results array\nconst allItems = $input.all();\n\nconst results = allItems.map(item => item.json);\n\nreturn [{ json: { results } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -16
+      ],
+      "id": "0d756581-6a3c-462c-998d-46c2908db458",
+      "name": "Aggregate Results"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"formats\": [\n    \"markdown\"\n  ],\n\"onlyMainContent\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        176
+      ],
+      "id": "fb6d1f91-b2b8-42bd-a9c6-0343ea2dfc19",
+      "name": "scrape from firecrawl",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eWufcyvisZkqmLkT",
+          "name": "firecrawl api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-BACKEND-PUBLIC-URL/api/webhooks/scrape-complete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-Secret",
+              "value": "n8nsecretisthis"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        176
+      ],
+      "id": "a1c9e6f4-3d2b-4e8a-9c7f-6b5a4d3e2f1c",
+      "name": "Send Results to Backend"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split URLs into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split URLs into Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "scrape from firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Extract Business Data",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Extract Business Data",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Extract Business Data": {
+      "main": [
+        [
+          {
+            "node": "Attach queryResultId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach queryResultId": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Results to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape from firecrawl": {
+      "main": [
+        [
+          {
+            "node": "AI Extract Business Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5e6bd924-d577-4b81-b401-124530f6be89",
+  "meta": {
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "Xlb8U0U6Xps3YzAz",
+  "tags": []
+}
