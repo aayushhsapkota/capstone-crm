@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://api.myn8n.au',
         changeOrigin: true,
       },
     },
