@@ -54,6 +54,17 @@ router.post('/send', async (req, res, next) => {
       bodyHtml,
     });
 
+    if (result?.ok !== true) {
+      await prisma.notification.create({
+        data: {
+          type: 'SEND_FAILED',
+          businessId,
+          message: `Failed to send "${subject}" to ${business.name}: ${result?.error || 'unknown error'}`,
+        },
+      });
+      return res.status(502).json({ error: result?.error || 'Email send failed' });
+    }
+
     const email = await prisma.email.create({
       data: {
         businessId,

@@ -98,6 +98,10 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         bodyHtml: draft.bodyHtml,
       });
 
+      if (result?.ok !== true) {
+        throw new Error(result?.error || 'Email send failed');
+      }
+
       await prisma.email.create({
         data: {
           businessId: business.id,
