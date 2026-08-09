@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { getBusinesses, getBusiness, updateBusiness } from '../api/businesses.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import ThreadView from '../components/ThreadView.jsx';
@@ -147,6 +148,12 @@ export default function Console() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold text-slate-800">{selectedBusiness.name}</h2>
+                <Link
+                  to={`/businesses/${selectedBusiness.id}`}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Edit profile
+                </Link>
                 {selectedBusiness.unsubscribed && (
                   <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
                     Unsubscribed
