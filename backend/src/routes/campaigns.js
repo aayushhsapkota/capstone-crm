@@ -74,6 +74,7 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
   });
 
   const offer = offerId ? await prisma.offer.findUnique({ where: { id: offerId } }) : null;
+  const ownerProfile = await prisma.ownerProfile.findFirst();
 
   for (const job of jobs) {
     const { business } = job;
@@ -91,7 +92,7 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
     }
 
     try {
-      const draft = await callN8n(process.env.N8N_WEBHOOK_GENERATE_EMAIL, { business, offer });
+      const draft = await callN8n(process.env.N8N_WEBHOOK_GENERATE_EMAIL, { business, offer, ownerProfile });
       const result = await callN8n(process.env.N8N_WEBHOOK_SEND_EMAIL, {
         business,
         subject: draft.subject,

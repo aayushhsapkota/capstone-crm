@@ -3,6 +3,11 @@ import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
 
 let rowKey = 0;
 
+function toServiceRow(entry) {
+  if (typeof entry === 'string') return { _id: rowKey++, service: entry, description: '' };
+  return { _id: rowKey++, service: entry.service || '', description: entry.description || '' };
+}
+
 export default function OwnerProfile() {
   const [form, setForm] = useState(null);
   const [serviceRows, setServiceRows] = useState([]);
@@ -20,8 +25,9 @@ export default function OwnerProfile() {
       senderEmail: profile.senderEmail || '',
       specialisation: profile.specialisation || '',
       signatureHtml: profile.signatureHtml || '',
+      logoUrl: profile.logoUrl || '',
     });
-    setServiceRows((profile.services || []).map((value) => ({ _id: rowKey++, value })));
+    setServiceRows((profile.services || []).map(toServiceRow));
     setLoading(false);
   }, []);
 
@@ -33,12 +39,12 @@ export default function OwnerProfile() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleServiceChange = (rowId, value) => {
-    setServiceRows((prev) => prev.map((r) => (r._id === rowId ? { ...r, value } : r)));
+  const handleServiceChange = (rowId, field, value) => {
+    setServiceRows((prev) => prev.map((r) => (r._id === rowId ? { ...r, [field]: value } : r)));
   };
 
   const handleAddService = () => {
-    setServiceRows((prev) => [...prev, { _id: rowKey++, value: '' }]);
+    setServiceRows((prev) => [...prev, { _id: rowKey++, service: '', description: '' }]);
   };
 
   const handleRemoveService = (rowId) => {
@@ -48,13 +54,16 @@ export default function OwnerProfile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const services = serviceRows.map((r) => r.value.trim()).filter(Boolean);
+      const services = serviceRows
+        .map((r) => ({ service: r.service.trim(), description: r.description.trim() }))
+        .filter((s) => s.service);
       const updated = await saveOwnerProfile({
         companyName: form.companyName,
         senderName: form.senderName,
         senderEmail: form.senderEmail,
         specialisation: form.specialisation || null,
         signatureHtml: form.signatureHtml || null,
+        logoUrl: form.logoUrl || null,
         services,
       });
       setForm((prev) => ({ ...prev, id: updated.id }));
@@ -111,6 +120,16 @@ export default function OwnerProfile() {
             className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
+        <div className="col-span-2">
+          <label className="block text-xs text-slate-500 mb-1">Logo URL</label>
+          <input
+            type="text"
+            value={form.logoUrl}
+            onChange={(e) => handleFieldChange('logoUrl', e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
       </div>
 
       <div className="mt-8">
@@ -129,17 +148,24 @@ export default function OwnerProfile() {
             <p className="text-slate-400 text-xs">No services added.</p>
           ) : (
             serviceRows.map((row) => (
-              <div key={row._id} className="flex items-center gap-2">
+              <div key={row._id} className="flex items-start gap-2">
                 <input
                   type="text"
-                  value={row.value}
-                  onChange={(e) => handleServiceChange(row._id, e.target.value)}
+                  value={row.service}
+                  onChange={(e) => handleServiceChange(row._id, 'service', e.target.value)}
                   placeholder="e.g. Teeth Whitening"
+                  className="w-1/3 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
+                />
+                <input
+                  type="text"
+                  value={row.description}
+                  onChange={(e) => handleServiceChange(row._id, 'description', e.target.value)}
+                  placeholder="Short description shown in the email"
                   className="flex-1 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
                 />
                 <button
                   onClick={() => handleRemoveService(row._id)}
-                  className="text-slate-400 hover:text-red-600 text-sm px-2"
+                  className="text-slate-400 hover:text-red-600 text-sm px-2 py-1.5"
                   aria-label="Remove service"
                 >
                   ✕
@@ -152,6 +178,10 @@ export default function OwnerProfile() {
 
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-slate-700">Email Signature</h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Used as the footer/sign-off in every generated email — include your address, phone, and
+          closing here.
+        </p>
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-slate-500 mb-1">HTML</label>

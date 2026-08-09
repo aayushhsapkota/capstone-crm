@@ -23,14 +23,16 @@ router.post('/generate', async (req, res, next) => {
   try {
     const { businessId, offerId } = req.body;
 
-    const [business, offer] = await Promise.all([
+    const [business, offer, ownerProfile] = await Promise.all([
       prisma.business.findUniqueOrThrow({ where: { id: businessId } }),
       offerId ? prisma.offer.findUnique({ where: { id: offerId } }) : null,
+      prisma.ownerProfile.findFirst(),
     ]);
 
     const draft = await callN8n(process.env.N8N_WEBHOOK_GENERATE_EMAIL, {
       business,
       offer,
+      ownerProfile,
     });
 
     res.json(draft); // { subject, bodyHtml }
