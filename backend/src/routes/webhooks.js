@@ -38,6 +38,8 @@ router.post('/query-results', async (req, res, next) => {
   }
 });
 
+const SCRAPE_ERROR_PATTERN = /^SCRAPE_.*_ERROR$/;
+
 // POST /api/webhooks/scrape-complete — n8n calls after scraping + Gemini extraction
 router.post('/scrape-complete', async (req, res, next) => {
   if (!validateSecret(req, res)) return;
@@ -45,6 +47,14 @@ router.post('/scrape-complete', async (req, res, next) => {
     const { results } = req.body;
 
     for (const r of results) {
+      if (SCRAPE_ERROR_PATTERN.test(r.name)) {
+        await prisma.queryResult.update({
+          where: { id: r.queryResultId },
+          data: { flagged: true, flagReason: r.name },
+        });
+        continue;
+      }
+
       const business = await prisma.business.create({
         data: {
           name: r.name,
