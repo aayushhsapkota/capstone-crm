@@ -1,0 +1,149 @@
+{
+  "name": "email sending",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-email",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1e554b88-f065-4e44-8427-8c1363ce26c0",
+      "name": "Send Email Webhook",
+      "webhookId": "send-email-webhook-0001"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.business.email }}",
+        "subject": "={{ $json.body.subject }}",
+        "message": "={{ $json.body.bodyHtml }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        0
+      ],
+      "id": "0a8b5285-8c97-4501-8622-9bf32b8275c0",
+      "name": "Send Email",
+      "webhookId": "5e3e4ee0-3327-4196-b898-566bb1ee13f5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CL68iL3xDEtCmyAB",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.error ? { \"ok\": false, \"error\": $json.error } : { \"ok\": true, \"gmailMessageId\": $json.id, \"gmailThreadId\": $json.threadId } }}",
+        "options": {
+          "responseCode": "={{ $json.error ? 500:200 }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        0
+      ],
+      "id": "7cf1d72a-8c54-4c27-8e97-0cde64fce22a",
+      "name": "Respond With Send Result"
+    }
+  ],
+  "pinData": {
+    "Send Email Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "myn8n.au",
+            "x-real-ip": "110.175.183.8",
+            "x-forwarded-for": "110.175.183.8",
+            "x-forwarded-proto": "https",
+            "content-length": "14236",
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.16.1",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "business": {
+              "id": "0c92a7b2-5d43-45b9-85db-475e4345e449",
+              "name": "City Dental Melbourne",
+              "specialisation": "Dental",
+              "location": "Melbourne VIC",
+              "email": "aayushsapkota115@outlook.com",
+              "phone": "03 9111 1111",
+              "website": "https://citydentalmelb.com.au",
+              "contactFirstName": null,
+              "contactLastName": null,
+              "services": "Orthodontics",
+              "awards": null,
+              "yearsExperience": "5",
+              "status": "NEW",
+              "unsubscribed": false,
+              "imageUrl": null,
+              "customAttrs": {
+                "Instagram": null
+              },
+              "scrapedAt": "2026-08-08T23:28:53.296Z",
+              "createdAt": "2026-08-08T23:28:53.304Z",
+              "updatedAt": "2026-08-09T02:24:11.449Z"
+            },
+            "subject": "Limited Time Offer for City Dental Melbourne – 20% Off",
+            "bodyHtml": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head>\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Carbonelle Consulting - Limited-Time Offer</title>\n    <!-- Basic styles for wide compatibility -->\n    <style type=\"text/css\">\n        body { margin: 0; padding: 0; background-color: #f0f4f8; font-family: 'Arial', sans-serif; }\n        table { border-collapse: collapse; }\n        a { text-decoration: none; }\n        /* Make button background easy to find and update */\n        .button { background-color: #3730a3; border-radius: 8px; }\n        .button a { color: #ffffff; display: block; padding: 14px 28px; text-decoration: none; font-weight: bold; font-size: 16px; }\n\n        /* Responsive Styles */\n        @media only screen and (max-width: 600px) {\n            .main-content { width: 100% !important; }\n            .stack-col { width: 100% !important; display: block !important; padding-left: 0 !important; padding-right: 0 !important; }\n            .offer-text { font-size: 36px !important; }\n            .cta-padding { padding: 30px 20px !important; }\n            .card-spacer { padding-right: 0 !important; padding-left: 0 !important; }\n            .card-container { width: 100% !important; }\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f0f4f8;\">\n\n    <!-- Outer Table for Email Centering -->\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"table-layout: fixed;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 20px 0;\">\n\n                <!-- Main Content Wrapper Table (Max Width 600px) -->\n                <table class=\"main-content\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);\">\n\n                    <!-- Header Section (Dark Blue) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 30px 0; background-color: #1e3a8a; border-radius: 12px 12px 0 0;\">\n                            <h1 style=\"color: #ffffff; font-size: 26px; margin: 0; line-height: 1.2;\">\n                                <span style=\"font-size: 30px; vertical-align: middle;\">🚀</span>&nbsp;Carbonelle Consulting\n                            </h1>\n                        </td>\n                    </tr>\n\n                    <!-- Main Offer Banner (Light Gray Background) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 40px 40px 20px 40px; background-color: #f9fafb;\">\n                            <p style=\"color: #3730a3; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;\">\n                                Exclusive Offer\n                            </p>\n                            <!-- NOTE: Easily change the percentage and time period here -->\n                            <h2 class=\"offer-text\" style=\"color: #1e3a8a; font-size: 48px; font-weight: 900; margin: 0;\">\n                         20% OFF FIRST This month only\n                            </h2>\n                        </td>\n                    </tr>\n\n                    <!-- Body Content -->\n                    <tr>\n                        <td style=\"padding: 30px 40px 10px 40px; color: #374151; font-size: 16px; line-height: 1.6;\">\n                            <p>Dear City Dental Melbourne Team,<br><br>We at Carbonelle are reaching out again to ensure your practice is running on a secure and efficient IT infrastructure, especially given your esteemed presence in Melbourne VIC.<br><br>We are excited to offer you a special, limited-time discount: 20% off your first 1 month of our IT support and cloud services. This is a fantastic opportunity to enhance your practice's technological capabilities at a reduced cost.<br><br>To take advantage of this exclusive offer and discuss how we can best support your IT needs, please schedule a brief consultation with us at your earliest convenience.<br><br></p>\n                        </td>\n                    </tr>\n\n                    \n\n                    <!-- 10 Feature Cards Grid -->\n                    <tr>\n                        <td style=\"padding: 0 40px 40px 40px;\">\n                            <h3 style=\"color: #1e3a8a; font-size: 22px; font-weight: bold; margin-bottom: 25px; text-align: center;\">Our Core Service Offerings</h3>\n\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n                                <tr>\n                                    <td>\n                                        <!-- Main Card Grid Table (5 Rows, 2 Columns) -->\n                                        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n\n                                            <!-- Card Generation Macro (5 rows of 2 cards each for 10 cards) -->\n\n                                            <!-- ROW 1 (Cards 1 & 2) -->\n                                            <tr>\n                                                <!-- Card 1 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-right: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ⚙️ Managed Medical IT Services\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                Comprehensive, proactive, and specialised IT management tailored specifically for the medical sector.\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/medical-it-services\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                                <!-- Card 2 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-left: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                         <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                🛡️ Cyber Security & Security Packages\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                Robust security solutions designed to protect your sensitive patient data from evolving cyber threats.\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/antivirus-security\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                            </tr>\n\n                                          <tr>\n                                                <!-- Card 1 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-right: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ⚙️ IT Support\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                Reliable and responsive technical support to resolve any IT issues your practice may encounter.\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/medical-it-services\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                                <!-- Card 2 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-left: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                         <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                🛡️ Cloud Hosting & Microsoft 365\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                Secure and scalable cloud solutions, including Microsoft 365, to enhance collaboration and productivity.\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/antivirus-security\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                            </tr>\n\n                                           \n\n                                        </table>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    <!-- End 10 Feature Cards Grid -->\n\n                    <!-- Footer Section (Dark Blue) -->\n                    <tr>\n                        <td style=\"padding: 30px 40px; background-color: #1e3a8a; border-radius: 0 0 12px 12px; color: #e0e7ff; text-align: center;\">\n                            <p style=\"font-size: 14px; margin: 0 0 10px 0; font-weight: 600;\">Carbonelle Consulting</p>\n                            <p style=\"font-size: 12px; margin: 0;\">\n                                Unit 4/1 Talavera Rd, Macquarie Park, NSW 2113, Australia <br> <a href=\"mailto:info@carbonelle.com\" style=\"color: #93c5fd;\">info@carbonelle.com</a>\n                            </p>\n                            <p style=\"font-size: 11px; color: #93c5fd; margin-top: 15px; margin-bottom: 0;\">\n                                &copy; 2025. All rights reserved. <a href=\"https://api.myn8n.au/api/public/unsubscribe?businessId=0c92a7b2-5d43-45b9-85db-475e4345e449\"\n style=\"color: #93c5fd;\">Unsubscribe</a>\n                            </p>\n                        </td>\n                    </tr>\n                </table>\n                <!-- End Main Content Wrapper -->\n\n            </td>\n        </tr>\n    </table>\n    <!-- End Outer Table -->\n\n</body>\n</html>"
+          },
+          "webhookUrl": "https://myn8n.au/webhook/send-email",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Send Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Respond With Send Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4416ce79-41e2-450b-97f4-462c32d417f2",
+  "meta": {
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "nZOpx798XMZOYYGn",
+  "tags": []
+}

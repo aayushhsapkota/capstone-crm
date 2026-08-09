@@ -1,0 +1,400 @@
+{
+  "name": "email Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=**Business Details**\n- Business Name: {{ $('Generate Email Webhook').item.json.body.business.name }}\n- Specialisation: {{ $('Generate Email Webhook').item.json.body.business.specialisation }}\n- Location: {{ $('Generate Email Webhook').item.json.body.business.location }}\n- Awards: {{ $('Generate Email Webhook').item.json.body.business.awards }}\n- Service List: {{ $('Generate Email Webhook').item.json.body.business.services }}\n- Years of Experience: {{ $('Generate Email Webhook').item.json.body.business.yearsExperience }}\n- Email: {{ $('Generate Email Webhook').item.json.body.business.email }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a professional outreach email writer.\n\nIntroduce the sender as **Carbonelle (not a person’s name)**.  \nAlways say **“I’m reaching out from Carbonelle”** or **“We at Carbonelle”** — never use a personal name.\n** After each paragraph, use the br tag to break the line, example: <br>\n\nYou will receive the following input variables:\n- Business Name  \n- Specialisation  \n- Achievements  \n- Location  \n- Awards  \n- Service List  \n- Years of Experience  \n- Email\n\n---\n\n### Task:\nWrite a personalized outreach email using the given information.\n\nIf the “Business Name” field is missing, does not contain a clear name, or is blank:\n- Do **not** guess a name.\n- Instead, use a neutral greeting like: “Dear Clinic Team,” or “Dear Healthcare Team,”.\n\n---\n\n### Requirements:\n1. **Personalization:**\n   - Use their *Business Name* and details such as *specialisation, achievements, awards, years of experience,* and *location* where available.  \n   - Acknowledge any achievement or reputation briefly to build rapport.\n\n2. **Tone:**\n   - Professional, respectful, and warm.  \n   - Avoid over-selling; focus on partnership and support.\n\n3. **Company Introduction:**\n   - Introduce Carbonelle naturally, e.g.:\n     - “I’m reaching out from Carbonelle, where we help healthcare providers stay secure, connected, and supported through reliable IT solutions.”\n\n4.  **Provide the list of these services in a list in an object, and also provide a small description of it according to their website. Do not include this in the body**\n   - Managed Medical IT Services  \n   - System Maintenance  \n   - Network Audit & Assessment  \n   - Network Management  \n   - Cyber Security & Security Packages  \n   - Backup & Disaster Recovery  \n   - IT Support  \n   - Cloud Hosting & Microsoft 365  \n   - High Speed NBN Connections  \n   - VoIP Services  \n\n**** No closing needed  *****\n\n---\n\n### Output format:\nReturn the result in valid JSON:\n{\n  \"subject\": \"string\",\n  \"body\": \"string\",\n   \"services\": [] inside services create an object, separate it with description and service,\n  \"email\": \"string\",\n  \"Specialisation\": Insert concise Specialisation here,         e.g., 'Dental', 'Dermatology', or 'Cardiology', etc. Insert Specialisation from the data that is provided Specialisation\n}\n\nReturn only valid JSON without code blocks or markdown formatting, and add the email from the input variable."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        256,
+        352
+      ],
+      "id": "ec602408-c11d-4ad9-bb87-e0075cd4b738",
+      "name": "Email generation"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $('Email generation').first().json.text;\n\n// Strip the markdown fences first\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nconst parsed = JSON.parse(cleaned);\n\nconst specialisedBody = parsed.Specialisation;\nconst specialsedLowerCase = specialisedBody.toLowerCase();\n\nconst findSpecialisation = (specialisedGeneral) => {\n  if (specialisedGeneral.includes(\"dentist\") || specialisedGeneral.includes(\"dental\")) {\n    return \"https://carbonelle.s3.ap-southeast-2.amazonaws.com/images/Dentist.png\";\n  } else if (specialisedGeneral.includes(\"dermatologist\") || specialisedGeneral.includes(\"dermatology\")) {\n    return \"https://carbonelle.s3.ap-southeast-2.amazonaws.com/images/Dermatology.png\";\n  } else {\n    return \"https://carbonelle.s3.ap-southeast-2.amazonaws.com/images/GP.png\";\n  }\n};\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    services: parsed.services,\n    imageLink: findSpecialisation(specialsedLowerCase),\n    email: parsed.email,\n    businessId: $('Generate Email Webhook').item.json.body.business.id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        352
+      ],
+      "id": "90aa8dec-f447-44b6-8af5-e14ab16effc3",
+      "name": "Parsing Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.text;\n\n// Step 1: Remove the ```json at the start and ``` at the end\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')   // Remove opening ```json\n  .replace(/```\\s*$/i, '')       // Remove closing ```\n  .trim();                        // Remove any extra whitespace\n\n// Step 2: Now it's safe to parse\nconst parsed = JSON.parse(cleaned);\n\n// Strip any % the LLM may have added — the HTML template appends its own\nconst discountPercentage = String(parsed.Percentage).replace(/%/g, '').trim();\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    email: parsed.email,\n    services: parsed.services,\n    offerPeriod: parsed.OfferTime,\n    DiscountPercentage: discountPercentage,\n    businessId: $('Generate Email Webhook').item.json.body.business.id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -128
+      ],
+      "id": "d76082c2-378d-4528-8744-a0c4b8859545",
+      "name": "Parsed Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=**Business Details**\n- Business Name: {{ $('Generate Email Webhook').item.json.body.business.name }}\n- Specialisation: {{ $('Generate Email Webhook').item.json.body.business.specialisation }}\n- Location: {{ $('Generate Email Webhook').item.json.body.business.location }}\n- Awards: {{ $('Generate Email Webhook').item.json.body.business.awards }}\n- Service List: {{ $('Generate Email Webhook').item.json.body.business.services }}\n- Years of Experience: {{ $('Generate Email Webhook').item.json.body.business.yearsExperience }}\n- Email: {{ $('Generate Email Webhook').item.json.body.business.email }}\n\n**Offer Details**\n- Offer Name: {{ $('Generate Email Webhook').item.json.body.offer.name }}\n- Headline: {{ $('Generate Email Webhook').item.json.body.offer.headline }}\n- Discount Percentage: {{ $('Generate Email Webhook').item.json.body.offer.discountPercent }}\n- Discount Duration: {{ $('Generate Email Webhook').item.json.body.offer.durationLabel }}\n- Call To Action: {{ $('Generate Email Webhook').item.json.body.offer.ctaText }}\n- Extra Notes: {{ $('Generate Email Webhook').item.json.body.offer.bodyNotes }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a professional outreach email writer for Carbonelle Consulting.\n\nIdentity Constraint: Introduce the sender as Carbonelle (not a person’s name). Always use phrases like “I’m reaching out from Carbonelle” or “We at Carbonelle”—never use a personal name.\n\nFormatting Constraint: After each logical paragraph or line break, you MUST use the raw HTML line break tag: <br>\n\nInput Variables (You will receive):\n\nBusiness Name: Business Name\n\nSpecialisation: Specialisation\n\nAchievements: Achievements\n\nLocation: Location\n\nAwards: Awards\n\nService List: Service List\n\nYears of Experience: Years of Experience\n\nEmail: Email\n\nDiscount Percentage: Discount Percentage (e.g., 30%)\n\nDiscount Duration: Discount Duration (e.g., 3 months)\n\nTask: Write a Shortened, Personalized Special Offer Email\nThe email should be a follow-up to a previous general outreach, focusing immediately on a limited-time discount.\n\nIf the “Business Name” field is missing, does not contain a clear name, or is blank:\n\nUse a neutral greeting like: “Dear Clinic Team,” or “Dear Healthcare Team,”.\n\nRequirements:\nOffer Focus: The core message is a limited-time special offer. Crucially, the email body MUST explicitly use the Discount Percentage and Discount Duration variables (e.g., \"We're offering 30% off for the first 3 months\").\n\nPersonalization (Brief):\n\nUse their Business Name and mention relevant details (like specialisation, location, or achievements) briefly, acknowledging their practice.\n\nStronger Personalization Example: \"Given your recognition for Achievements in the Location area...\"\n\nEmail Content Structure:\n\nGreeting: Personalized using Business Name or neutral.\n\nOpening Statement: Acknowledge their practice and their need for secure IT.\n\nOffer: State the limited-time discount (Discount Percentage off for the first Discount Duration) and services it applies to (IT support and cloud services).\n\nCall to Action: Schedule a consultation to capitalize on the offer.\n\nDo not include closing\n\n**Provide the list of these services in a list in an object, and also provide a small description of it according to their website. Do not include this in the body**\n   - Managed Medical IT Services  \n   - System Maintenance  \n   - Network Audit & Assessment  \n   - Network Management  \n   - Cyber Security & Security Packages  \n   - Backup & Disaster Recovery  \n   - IT Support  \n   - Cloud Hosting & Microsoft 365  \n   - High Speed NBN Connections  \n   - VoIP Services  \n\nService List Output (Do not include in the body):\n\nProvide the complete list of 10 core services in the required JSON structure, including a concise description for each service.\n\nService List: Managed Medical IT Services, System Maintenance, Network Audit & Assessment, Network Management, Cyber Security & Security Packages, Backup & Disaster Recovery, IT Support, Cloud Hosting & Microsoft 365, High Speed NBN Connections, VoIP Services.\n\nOutput format:\nReturn the result in valid JSON ONLY (without markdown formatting or code blocks):\n{\n  \"subject\": \"Limited Time Offer for Business Name or Specialisation  – Discount Percentage Off\",\n  \"body\": \"string (with <br> tags after each paragraph/line)\",\n  \"services\": [\n    {\n      \"service\": \"Managed Medical IT Services\",\n      \"description\": \"Comprehensive, proactive, and specialised IT management tailored specifically for the medical sector.\"\n    },\n    {\n      \"service\": \"System Maintenance\",\n      \"description\": \"Regular health checks, updates, and optimization to ensure all practice systems run efficiently and reliably.\"\n    },\n    // ... all 10 services with descriptions\n  ],\n  \"email\": \"{{ $('Generate Email Webhook').item.json.body.business.email }}\",\n  \"Specialisation\": \"Insert concise Specialisation here, e.g., 'Dental', 'Dermatology', or 'Cardiology'\"\n  \"Percentage\": Discount Percent\n  \"OfferTime\": Discount Duration\n}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        608,
+        -128
+      ],
+      "id": "ea135944-28eb-472d-9478-b0174ab13f19",
+      "name": "Offer Generation"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head>\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Carbonelle Consulting - Limited-Time Offer</title>\n    <!-- Basic styles for wide compatibility -->\n    <style type=\"text/css\">\n        body { margin: 0; padding: 0; background-color: #f0f4f8; font-family: 'Arial', sans-serif; }\n        table { border-collapse: collapse; }\n        a { text-decoration: none; }\n        /* Make button background easy to find and update */\n        .button { background-color: #3730a3; border-radius: 8px; }\n        .button a { color: #ffffff; display: block; padding: 14px 28px; text-decoration: none; font-weight: bold; font-size: 16px; }\n\n        /* Responsive Styles */\n        @media only screen and (max-width: 600px) {\n            .main-content { width: 100% !important; }\n            .stack-col { width: 100% !important; display: block !important; padding-left: 0 !important; padding-right: 0 !important; }\n            .offer-text { font-size: 36px !important; }\n            .cta-padding { padding: 30px 20px !important; }\n            .card-spacer { padding-right: 0 !important; padding-left: 0 !important; }\n            .card-container { width: 100% !important; }\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f0f4f8;\">\n\n    <!-- Outer Table for Email Centering -->\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"table-layout: fixed;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 20px 0;\">\n\n                <!-- Main Content Wrapper Table (Max Width 600px) -->\n                <table class=\"main-content\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);\">\n\n                    <!-- Header Section (Dark Blue) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 30px 0; background-color: #1e3a8a; border-radius: 12px 12px 0 0;\">\n                            <h1 style=\"color: #ffffff; font-size: 26px; margin: 0; line-height: 1.2;\">\n                                <span style=\"font-size: 30px; vertical-align: middle;\">🚀</span>&nbsp;Carbonelle Consulting\n                            </h1>\n                        </td>\n                    </tr>\n\n                    <!-- Main Offer Banner (Light Gray Background) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 40px 40px 20px 40px; background-color: #f9fafb;\">\n                            <p style=\"color: #3730a3; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;\">\n                                Exclusive Offer\n                            </p>\n                            <!-- NOTE: Easily change the percentage and time period here -->\n                            <h2 class=\"offer-text\" style=\"color: #1e3a8a; font-size: 48px; font-weight: 900; margin: 0;\">\n                         {{ $json.DiscountPercentage }}% OFF FIRST {{ $json.offerPeriod }}\n                            </h2>\n                        </td>\n                    </tr>\n\n                    <!-- Body Content -->\n                    <tr>\n                        <td style=\"padding: 30px 40px 10px 40px; color: #374151; font-size: 16px; line-height: 1.6;\">\n                            <p>{{ $json.body }}</p>\n                        </td>\n                    </tr>\n\n                    \n\n                    <!-- 10 Feature Cards Grid -->\n                    <tr>\n                        <td style=\"padding: 0 40px 40px 40px;\">\n                            <h3 style=\"color: #1e3a8a; font-size: 22px; font-weight: bold; margin-bottom: 25px; text-align: center;\">Our Core Service Offerings</h3>\n\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n                                <tr>\n                                    <td>\n                                        <!-- Main Card Grid Table (5 Rows, 2 Columns) -->\n                                        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n\n                                            <!-- Card Generation Macro (5 rows of 2 cards each for 10 cards) -->\n\n                                            <!-- ROW 1 (Cards 1 & 2) -->\n                                            <tr>\n                                                <!-- Card 1 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-right: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ⚙️ {{ $json.services[0].service }}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                {{ $json.services[0].description }}\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/medical-it-services\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                                <!-- Card 2 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-left: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                         <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                🛡️ {{ $json.services[4].service }}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                {{ $json.services[4].description }}\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/antivirus-security\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                            </tr>\n\n                                          <tr>\n                                                <!-- Card 1 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-right: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ⚙️ {{ $json.services[6].service }}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                {{ $json.services[6].description }}\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/medical-it-services\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                                <!-- Card 2 -->\n                                                <td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"padding-left: 10px; padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                         <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                🛡️ {{ $json.services[7].service }}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                {{ $json.services[7].description }}\n                                                            </p>\n                                                            <a href=\"https://www.carbonelle.com.au/antivirus-security\" target=\"_blank\" style=\"color: #3730a3; font-weight: bold; font-size: 12px;\">Explore &rarr;</a>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>\n                                            </tr>\n\n                                           \n\n                                        </table>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    <!-- End 10 Feature Cards Grid -->\n\n                    <!-- Footer Section (Dark Blue) -->\n                    <tr>\n                        <td style=\"padding: 30px 40px; background-color: #1e3a8a; border-radius: 0 0 12px 12px; color: #e0e7ff; text-align: center;\">\n                            <p style=\"font-size: 14px; margin: 0 0 10px 0; font-weight: 600;\">Carbonelle Consulting</p>\n                            <p style=\"font-size: 12px; margin: 0;\">\n                                Unit 4/1 Talavera Rd, Macquarie Park, NSW 2113, Australia <br> <a href=\"mailto:info@carbonelle.com\" style=\"color: #93c5fd;\">info@carbonelle.com</a>\n                            </p>\n                            <p style=\"font-size: 11px; color: #93c5fd; margin-top: 15px; margin-bottom: 0;\">\n                                &copy; 2025. All rights reserved. <a href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\"\n style=\"color: #93c5fd;\">Unsubscribe</a>\n                            </p>\n                        </td>\n                    </tr>\n                </table>\n                <!-- End Main Content Wrapper -->\n\n            </td>\n        </tr>\n    </table>\n    <!-- End Outer Table -->\n\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -128
+      ],
+      "id": "f722cb48-7b06-4766-af87-8d41e9a3b1b2",
+      "name": "HTML Offer template"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Carbonelle IT Solutions for Doctors</title>\n    <!-- CSS for Responsiveness and Styles -->\n    <style>\n        .preheader { display: none !important; visibility: hidden; opacity: 0; color: #ffffff; height: 0; width: 0; }\n        /* Reset styles */\n        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\n        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\n        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }\n        \n        /* Mobile styles: Stacks 2 columns to 1 column */\n        @media screen and (max-width: 600px) {\n            .mobile-full-width { width: 100% !important; max-width: 100% !important; }\n            .hero-img { width: 100% !important; height: auto !important; }\n            .content-area { padding: 20px !important; }\n            /* Forces 50% cells to 100% on mobile */\n            .service-column { \n                width: 100% !important; \n                display: block !important; \n                padding: 10px 0 !important; /* Vertical spacing between stacked cards */\n            }\n            .spacer-row { display: none !important; } /* Hide empty spacer row on mobile */\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f4f4f4;\">\n    <span class=\"preheader\">See how Carbonelle can strengthen your practice's IT for better patient care.</span>\n\n    <center>\n        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"table-layout: fixed;\">\n            <tr>\n                <td align=\"center\" style=\"padding: 20px 0;\">\n                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" role=\"presentation\" class=\"mobile-full-width\" style=\"background-color: #ffffff; max-width: 600px; border-radius: 8px; overflow: hidden;\">\n\n                        <!-- 1. LOGO & BRANDING AREA -->\n                       <tr>\n    <td align=\"center\" style=\"padding: 10px 20px 5px 20px;\">\n        <a href=\"https://www.carbonelle.com.au/\" target=\"_blank\" style=\"text-decoration: none;\">\n            <img \n                src=\"https://media.licdn.com/dms/image/v2/D560BAQFf-dMeSJJrQQ/company-logo_200_200/company-logo_200_200/0/1732494598163/carbonelle_consulting_logo?e=2147483647&v=beta&t=txm9G_2pAbYfH91NScBcRa2OwIs5YJhcdt1EZtdgTxg\" \n                alt=\"Carbonelle Logo\" \n                width=\"150\" \n                style=\"display: block; border: 0; max-width: 150px; margin: 0 auto;\" \n                />\n        </a>\n    </td>\n</tr>\n                        <!-- Divider -->\n                        <tr>\n                            <td style=\"padding: 0 20px;\">\n                                <hr style=\"border: 0; height: 1px; background-color: #e0e0e0;\">\n                            </td>\n                        </tr>\n\n                        <!-- 2. DYNAMIC HEADER IMAGE -->\n                        <tr>\n                            <td align=\"center\" style=\"padding: 10px 20px;\">\n                                <!-- Mapped Dynamic Image Link -->\n                                <img class=\"hero-img\" src=\"{{ $('Parsing Data').item.json.imageLink }}\" alt=\"Professional Healthcare Provider\" width=\"560\" style=\"display: block; border: 0; max-width: 100%; height: auto; border-radius: 8px;\">\n                            </td>\n                        </tr>\n\n                        <!-- 3. MAIN INTRODUCTION BODY (Mapped using $json.body) -->\n                        <tr>\n                            <td class=\"content-area\" style=\"padding: 20px 40px 10px 40px; font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <!-- Dynamic Email Body Content (from AI generation) -->\n                                 {{ $('Parsing Data').item.json.body }}\n                                <p style=\"margin: 20px 0 10px 0;\">\n                                    We offer a comprehensive suite of IT services tailored for medical practices:\n                                </p>\n                            </td>\n                        </tr>\n\n                        <!-- 4. DYNAMIC SERVICE LIST (2-Column Layout on Desktop, Stacking on Mobile) -->\n                        <tr>\n                            <td style=\"padding: 0px 20px 30px 20px;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    \n                                    <!-- Dynamic Loop for Services (2 items per row) -->\n                                    <tr>\n                                        <!-- Card 1 (Left Column) -->\n                                        <td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n                                                <tr>\n                                                    <td style=\"padding: 15px;\">\n                                                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                                            <tr>\n                                                                <!-- Icon Column -->\n                                                                <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                                                    <span style=\"font-size: 20px; color: #007bff;\">\n                                                                       ⚙️\n                                                                    </span>\n                                                                </td>\n                                                                <!-- Content Column -->\n                                                                <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                                                    <strong style=\"font-size: 15px; line-height: 20px;\">\n                                                                        {{ $('Parsing Data').item.json.services[0].service }}\n                                                                    </strong>\n                                                                    <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">\n                                                                        {{ $('Parsing Data').item.json.services[0].description }}\n                                                                    </p>\n                                                                  <a href=\"https://www.carbonelle.com.au/medical-it-services\" target=\"_blank\" style=\"display: inline-block; padding: 8px 15px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #ffffff; background-color: #007bff; border-radius: 4px; text-decoration: none; margin-top: 10px;\" class=\"button-text\">Explore</a>\n                                                                </td>\n                                                            </tr>\n                                                        </table>\n                                                    </td>\n                                                </tr>\n                                            </table>\n                                        </td>\n                                        \n                                        <!-- Card 2 (Right Column) -->\n                                        <td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n                                                <tr>\n                                                    <td style=\"padding: 15px;\">\n                                                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                                            <tr>\n                                                                <!-- Icon Column -->\n                                                                 <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                                                    <span style=\"font-size: 20px; color: #007bff;\">\n                                                                       🛡️\n                                                                    </span>\n                                                                </td>\n                                                                <!-- Content Column -->\n                                                                <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                                                    <strong style=\"font-size: 15px; line-height: 20px;\">\n                                                                        {{ $('Parsing Data').item.json.services[4].service }}\n                                                                    </strong>\n                                                                    <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">\n                                                                        {{ $('Parsing Data').item.json.services[4].description }}\n                                                                    </p>\n                                                                  <a href=\"https://www.carbonelle.com.au/antivirus-security\" target=\"_blank\" style=\"display: inline-block; padding: 8px 15px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #ffffff; background-color: #007bff; border-radius: 4px; text-decoration: none; margin-top: 10px;\" class=\"button-text\">Explore</a>\n                                                                </td>\n                                                            </tr>\n                                                        </table>\n                                                    </td>\n                                                </tr>\n                                            </table>\n                                        </td>\n                                    </tr>\n                                   <tr>\n                                        <!-- Card 1 (Left Column) -->\n                                        <td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n                                                <tr>\n                                                    <td style=\"padding: 15px;\">\n                                                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                                            <tr>\n                                                                <!-- Icon Column -->\n                                                                <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                                                    <span style=\"font-size: 20px; color: #007bff;\">\n                                                                       📞\n                                                                    </span>\n                                                                </td>\n                                                                <!-- Content Column -->\n                                                                <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                                                    <strong style=\"font-size: 15px; line-height: 20px;\">\n                                                                        {{ $('Parsing Data').item.json.services[6].service }}\n                                                                    </strong>\n                                                                    <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">\n                                                                        {{ $('Parsing Data').item.json.services[6].description }}\n                                                                    </p>\n                                                                  <a href=\"https://www.carbonelle.com.au/it-support\" target=\"_blank\" style=\"display: inline-block; padding: 8px 15px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #ffffff; background-color: #007bff; border-radius: 4px; text-decoration: none; margin-top: 10px;\" class=\"button-text\">Explore</a>\n                                                                </td>\n                                                            </tr>\n                                                        </table>\n                                                    </td>\n                                                </tr>\n                                            </table>\n                                        </td>\n                                        \n                                        <!-- Card 2 (Right Column) -->\n                                        <td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n                                                <tr>\n                                                    <td style=\"padding: 15px;\">\n                                                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                                            <tr>\n                                                                <!-- Icon Column -->\n                                                                 <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                                                    <span style=\"font-size: 20px; color: #007bff;\">\n                                                                        ☁️\n                                                                    </span>\n                                                                </td>\n                                                                <!-- Content Column -->\n                                                                <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                                                    <strong style=\"font-size: 15px; line-height: 20px;\">\n                                                                        {{ $('Parsing Data').item.json.services[7].service }}\n                                                                    </strong>\n                                                                    <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">\n                                                                       {{ $('Parsing Data').item.json.services[7].description }}\n                                                                    </p>\n                                                                  <a href=\"https://www.carbonelle.com.au/private-cloud\" target=\"_blank\" style=\"display: inline-block; padding: 8px 15px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #ffffff; background-color: #007bff; border-radius: 4px; text-decoration: none; margin-top: 10px;\" class=\"button-text\">Explore</a>\n                                                                </td>\n                                                            </tr>\n                                                        </table>\n                                                    </td>\n                                                </tr>\n                                            </table>\n                                        </td>\n                                    </tr>\n                                   \n                            \n                                    <!-- Space between rows on desktop -->\n                                    <tr class=\"spacer-row\">\n                                        <td height=\"10\" style=\"font-size: 1px; line-height: 1px;\" colspan=\"2\">&nbsp;</td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n\n                        <!-- 5. CLOSING TEXT -->\n                        <tr>\n                            <td style=\"padding: 0 40px 20px 40px; font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <p style=\"margin: 0;\">\n                                    Feel free to reply to this email or give us a call if you'd like a quick chat to consult.\n                                </p>\n                            </td>\n                        </tr>\n\n                        <!-- 6. SIGNATURE -->\n                        <tr>\n                            <td style=\"padding: 0 40px 30px 40px; font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <p style=\"margin: 0 0 5px 0\">Warm Regards,</p>\n                                <p style=\"margin: 0; font-weight: bold\">Carbonelle Team</p>\n                            </td>\n                        </tr>\n\n                        <!-- 7. FOOTER BAR -->\n                        <tr>\n                            <td align=\"center\" style=\"background-color: #3f51b5; padding: 20px 0; color: #ffffff; font-family: Arial, sans-serif;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    <tr>\n                                        <td align=\"center\" style=\"font-size: 12px; line-height: 18px; padding: 0 20px 10px 20px;\">\n                                            **Carbonelle Consulting**<br />\n                                            Unit 4/1 Talavera Rd, Macquarie Park, NSW 2113, Australia <br />\n                                            Tel: (02) 9889 1311\n                                        </td>\n                                    </tr>\n                                    <tr>\n                                        <td align=\"center\" style=\"font-size: 12px; padding: 0 20px;\">\n                                            \n                <a\n                  href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\"\n target=\"_blank\" style=\"color: #bbdefb; text-decoration: underline;\">Unsubscribe</a> | <a href=\"https://www.carbonelle.com.au/about-us\" target=\"_blank\" style=\"color: #bbdefb; text-decoration: underline;\">About Us</a>\n                                        </td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n                    </table>\n                </td>\n            </tr>\n        </table>\n    </center>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        352
+      ],
+      "id": "de62ad78-57f4-4f0b-8b7d-eb4ede086302",
+      "name": "HTML Introduction Template"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        320,
+        576
+      ],
+      "id": "d4a6df45-a03a-42f9-98a1-b2651f5c8ba8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        688,
+        96
+      ],
+      "id": "d55d89e8-bf74-44e5-9bdc-90564a8661fe",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-email",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        112
+      ],
+      "id": "942015d1-25a3-495f-b03a-d2395e804d58",
+      "name": "Generate Email Webhook",
+      "webhookId": "gen-email-webhook-0001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-offer-cond-0001",
+              "leftValue": "={{ $json.body.offer ? true : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        112
+      ],
+      "id": "88a948e2-4c59-4ec3-8e60-a9cc99e942ad",
+      "name": "Has Offer?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"subject\": $('Parsed Data').item.json.subject, \"bodyHtml\": $json.html } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1408,
+        -128
+      ],
+      "id": "9258319e-b33f-4ebf-9073-964d93457640",
+      "name": "Respond With Offer Draft"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"subject\": $('Parsing Data').item.json.subject, \"bodyHtml\": $json.html } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        576
+      ],
+      "id": "67084691-3e12-4dfb-be8d-0fd5d803ddf6",
+      "name": "Respond With Intro Draft"
+    }
+  ],
+  "pinData": {
+    "Generate Email Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "myn8n.au",
+            "x-real-ip": "110.175.183.8",
+            "x-forwarded-for": "110.175.183.8",
+            "x-forwarded-proto": "https",
+            "content-length": "627",
+            "user-agent": "curl/7.83.0",
+            "accept": "*/*",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "business": {
+              "id": "test-business-id",
+              "name": "City Dental Melbourne",
+              "specialisation": "Dental",
+              "location": "Melbourne VIC",
+              "email": "contact@citydentalmelb.com.au",
+              "phone": "03 9111 1111",
+              "services": "Orthodontics",
+              "awards": null,
+              "yearsExperience": "5"
+            },
+            "offer": {
+              "id": "test-offer-id",
+              "name": "Spring Special",
+              "headline": "20% off your first service",
+              "discountPercent": 20,
+              "durationLabel": "3 months",
+              "ctaText": "Claim Offer",
+              "bodyNotes": "Applies to IT support and cloud services only"
+            }
+          },
+          "webhookUrl": "https://myn8n.au/webhook/generate-email",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Generate Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Has Offer?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Offer?": {
+      "main": [
+        [
+          {
+            "node": "Offer Generation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offer Generation": {
+      "main": [
+        [
+          {
+            "node": "Parsed Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsed Data": {
+      "main": [
+        [
+          {
+            "node": "HTML Offer template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Offer template": {
+      "main": [
+        [
+          {
+            "node": "Respond With Offer Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email generation": {
+      "main": [
+        [
+          {
+            "node": "Parsing Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsing Data": {
+      "main": [
+        [
+          {
+            "node": "HTML Introduction Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Introduction Template": {
+      "main": [
+        [
+          {
+            "node": "Respond With Intro Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email generation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Offer Generation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4d349fd5-7e3f-4ff4-8a42-dc54327809f8",
+  "meta": {
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "6bMxQiLY0yhwGo5L",
+  "tags": []
+}
