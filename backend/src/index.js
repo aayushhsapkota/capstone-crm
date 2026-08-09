@@ -14,6 +14,7 @@ import notificationsRouter from './routes/notifications.js';
 import campaignsRouter from './routes/campaigns.js';
 import ownerProfileRouter from './routes/ownerProfile.js';
 import webhooksRouter from './routes/webhooks.js';
+import publicRouter from './routes/public.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/owner-profile', ownerProfileRouter);
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/public', publicRouter);
 
 app.use(errorHandler);
 
