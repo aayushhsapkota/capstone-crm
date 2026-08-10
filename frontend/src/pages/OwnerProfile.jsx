@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
+import ImageUrlField from '../components/ImageUrlField.jsx';
 
 let rowKey = 0;
 
@@ -26,6 +27,7 @@ export default function OwnerProfile() {
       specialisation: profile.specialisation || '',
       signatureHtml: profile.signatureHtml || '',
       logoUrl: profile.logoUrl || '',
+      heroImageUrl: profile.heroImageUrl || '',
     });
     setServiceRows((profile.services || []).map(toServiceRow));
     setLoading(false);
@@ -64,6 +66,7 @@ export default function OwnerProfile() {
         specialisation: form.specialisation || null,
         signatureHtml: form.signatureHtml || null,
         logoUrl: form.logoUrl || null,
+        heroImageUrl: form.heroImageUrl || null,
         services,
       });
       setForm((prev) => ({ ...prev, id: updated.id }));
@@ -121,13 +124,19 @@ export default function OwnerProfile() {
           />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs text-slate-500 mb-1">Logo URL</label>
-          <input
-            type="text"
+          <ImageUrlField
+            label="Logo"
             value={form.logoUrl}
-            onChange={(e) => handleFieldChange('logoUrl', e.target.value)}
+            onChange={(url) => handleFieldChange('logoUrl', url)}
             placeholder="https://example.com/logo.png"
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="col-span-2">
+          <ImageUrlField
+            label="Intro Email Header Image"
+            value={form.heroImageUrl}
+            onChange={(url) => handleFieldChange('heroImageUrl', url)}
+            placeholder="https://example.com/intro-header.jpg"
           />
         </div>
       </div>

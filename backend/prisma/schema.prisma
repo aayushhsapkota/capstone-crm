@@ -78,6 +78,7 @@ model Offer {
   durationLabel   String?
   ctaText         String?
   bodyNotes       String?        // Extra context passed to AI when generating offer emails
+  imageUrl        String?        // Header image shown in offer emails for this specific offer
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -194,5 +195,6 @@ model OwnerProfile {
   services       Json?    // Array of service name strings
   signatureHtml  String?
   logoUrl        String?
+  heroImageUrl   String?  // Intro email header image
   updatedAt      DateTime @updatedAt
 }

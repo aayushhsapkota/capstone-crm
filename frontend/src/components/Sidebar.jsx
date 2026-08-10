@@ -5,6 +5,7 @@ const links = [
   { to: '/queries', label: 'Query Manager' },
   { to: '/leads', label: 'Lead Review' },
   { to: '/campaigns', label: 'Campaigns' },
+  { to: '/offers', label: 'Offers' },
   { to: '/owner-profile', label: 'Owner Profile' },
 ];
 
