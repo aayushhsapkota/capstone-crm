@@ -22,4 +22,6 @@ jobs:
             cd ~/carbonelle-crm/backend
             git pull origin main
             npm install --production
+            npx prisma migrate deploy
+            npx prisma generate
             pm2 reload my-app
