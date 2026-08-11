@@ -62,20 +62,9 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://localhost:3001/api/webhooks/query-results",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "X-N8N-Secret",
-              "value": "=n8nsecretisthis"
-            }
-          ]
-        },
+        "url": "=https://api.myn8n.au/api/webhooks/query-results",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -92,6 +81,12 @@
       "alwaysOutputData": false,
       "executeOnce": false,
       "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "UF47U9kTZIxCfvcJ",
+          "name": "n8n secret"
+        }
+      },
       "onError": "continueErrorOutput"
     },
     {
@@ -123,20 +118,6 @@
       ],
       "id": "d1a9d312-2cfc-455d-8939-21402604b487",
       "name": "Combine all results into one object."
-    },
-    {
-      "parameters": {
-        "content": "This Post results to backend sends n8n secret to backend. Worth hiding it if you commit to github.",
-        "height": 96
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        400,
-        64
-      ],
-      "id": "0216335d-827f-42dc-b7a3-1f349f2613bc",
-      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -203,7 +184,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "63dddac3-6dc1-41c5-867f-e7a0a38e1ac3",
+  "versionId": "ec15dfda-3c9f-4f8a-8015-9c91e913a3d1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"

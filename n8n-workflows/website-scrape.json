@@ -11,25 +11,12 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        176
+        -672,
+        496
       ],
-      "id": "8abbf25e-ebfb-400d-a3d3-995b486c86c9",
+      "id": "f62f300c-a4ce-4548-8bf3-cd05890f6c43",
       "name": "Webhook",
       "webhookId": "scrape-websites"
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = $input.first().json.body.results;\nreturn results.map((r) => ({ json: r }));"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        224,
-        176
-      ],
-      "id": "ecdacb6c-723b-4bbb-92dd-8b2d5a951e01",
-      "name": "Split URLs into Items"
     },
     {
       "parameters": {
@@ -38,10 +25,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        448,
-        176
+        -224,
+        496
       ],
-      "id": "89e296af-7502-4087-8e15-1828dfb385a2",
+      "id": "f3ed2186-106d-4b9e-b876-bfb7a5407b02",
       "name": "Loop Over Items"
     },
     {
@@ -51,10 +38,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        912,
-        400
+        240,
+        720
       ],
-      "id": "ae5735ac-c479-4d7e-aaf0-b2ad5e03fefe",
+      "id": "c680b8ad-eafe-4db4-a2b1-186bcc010665",
       "name": "Gemini Model",
       "credentials": {
         "googlePalmApi": {
@@ -66,7 +53,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. Focus only on factual and verifiable details.\n\nFields to extract (leave blank or null if not present):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output strictly factual — do not assume, guess, or invent information.\n2. Only use information visible in the markdown content.\n3. Output ONLY the JSON object; do not include explanations or extra text.\n\n",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave blank or null if not present):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If {{ $json.sucess }} = false, then for every values of attributes in output json put, {{ $json.code }}.\n\n",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -75,10 +62,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "position": [
-        896,
-        176
+        224,
+        496
       ],
-      "id": "0d6ae538-79eb-4003-bb5b-74221fe9e06e",
+      "id": "f9bd6470-0f1d-4563-8635-fdaef6738873",
       "name": "AI Extract Business Data",
       "retryOnFail": true
     },
@@ -89,23 +76,23 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        1040,
-        400
+        368,
+        720
       ],
-      "id": "35febd06-0574-4790-9dd4-c701cdd3b808",
+      "id": "1c51f376-ef30-45af-a5cb-9a35e5b03fbf",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
-        "jsCode": "const extracted = $input.first().json.output;\nconst queryResultId = $('Split URLs into Items').item.json.id;\nreturn [{\n  json: {\n    queryResultId,\n    ...extracted\n  }\n}];"
+        "jsCode": "const extracted = $input.first().json.output;\nconst queryResultId = $('Split the body into separate Items').item.json.id;\nreturn [{\n  json: {\n    queryResultId,\n    ...extracted\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        304
+        576,
+        624
       ],
-      "id": "7c865fb6-2b2b-40bb-a4a6-22e9a3e7c8d3",
+      "id": "fedf55c4-ae30-4e22-b6b2-226c6a705a05",
       "name": "Attach queryResultId"
     },
     {
@@ -117,10 +104,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        1104,
-        -16
+        288,
+        0
       ],
-      "id": "bbd2f430-0e94-436a-9ebd-1d4b93de4889",
+      "id": "ea10ba1c-4851-4fc3-8c1a-da43667614ad",
       "name": "Respond to Webhook"
     },
     {
@@ -130,10 +117,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        672,
-        -16
+        0,
+        96
       ],
-      "id": "0d756581-6a3c-462c-998d-46c2908db458",
+      "id": "5154d543-4a82-4886-9a7c-4cf44118cab3",
       "name": "Aggregate Results"
     },
     {
@@ -150,10 +137,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        672,
-        176
+        0,
+        496
       ],
-      "id": "fb6d1f91-b2b8-42bd-a9c6-0343ea2dfc19",
+      "id": "f8a80853-cdca-41e9-9f7a-d85ee628fcc2",
       "name": "scrape from firecrawl",
       "retryOnFail": true,
       "credentials": {
@@ -161,21 +148,15 @@
           "id": "eWufcyvisZkqmLkT",
           "name": "firecrawl api"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://YOUR-BACKEND-PUBLIC-URL/api/webhooks/scrape-complete",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-N8N-Secret",
-              "value": "n8nsecretisthis"
-            }
-          ]
-        },
+        "url": "https://api.myn8n.au/api/webhooks/scrape-complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ $json }}",
@@ -184,31 +165,91 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1104,
-        176
+        288,
+        192
       ],
-      "id": "a1c9e6f4-3d2b-4e8a-9c7f-6b5a4d3e2f1c",
-      "name": "Send Results to Backend"
+      "id": "d5bdfc3f-251b-458f-8263-714d5d1baf90",
+      "name": "Send Results to Backend",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "UF47U9kTZIxCfvcJ",
+          "name": "n8n secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.body.results;\nreturn results.map((r) => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        496
+      ],
+      "id": "de0b5f68-8589-4d64-a1ae-463563f1a735",
+      "name": "Split the body into separate Items"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "myn8n.au",
+            "x-real-ip": "110.175.183.8",
+            "x-forwarded-for": "110.175.183.8",
+            "x-forwarded-proto": "https",
+            "content-length": "574",
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.16.1",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "results": [
+              {
+                "id": "6076cc76-928b-4052-a3e3-c41b681182af",
+                "queryId": "8a2a86ec-2eba-41d4-b8bd-9c0dd63468ef",
+                "url": "https://smilebrightdental.com.au",
+                "businessName": "Smile Bright Dental",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-07T23:51:25.112Z"
+              },
+              {
+                "id": "097052f9-905e-4407-b38a-5ebd2e97f4ee",
+                "queryId": "8a2a86ec-2eba-41d4-b8bd-9c0dd63468ef",
+                "url": "https://citydentalmelb.com.au",
+                "businessName": "City Dental Melbourne",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-07T23:51:25.112Z"
+              }
+            ]
+          },
+          "webhookUrl": "https://myn8n.au/webhook/scrape-websites",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
       "main": [
         [
           {
-            "node": "Split URLs into Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split URLs into Items": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
+            "node": "Split the body into separate Items",
             "type": "main",
             "index": 0
           }
@@ -303,17 +344,28 @@
           }
         ]
       ]
+    },
+    "Split the body into separate Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "5e6bd924-d577-4b81-b401-124530f6be89",
+  "versionId": "50e8785f-2e20-4454-9c0b-7e22dc16ea11",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
-  "id": "Xlb8U0U6Xps3YzAz",
+  "id": "z1j5wEg9VVffvKvP",
   "tags": []
 }
