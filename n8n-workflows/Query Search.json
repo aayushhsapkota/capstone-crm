@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -400,
-        176
+        0,
+        0
       ],
-      "id": "302f4f67-37da-4290-9408-a6ecf9779a83",
+      "id": "292eb2e8-3ac6-43df-958f-31a72f43477d",
       "name": "Webhook",
       "webhookId": "query-search"
     },
@@ -32,10 +32,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -176,
-        176
+        224,
+        0
       ],
-      "id": "abafc05b-8227-4044-b59f-e40d973ab581",
+      "id": "ff65a0f1-9ab8-4dfb-bcf8-2439d16b143a",
       "name": "Firecrawl Search",
       "retryOnFail": true,
       "credentials": {
@@ -53,10 +53,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
-        176
+        448,
+        0
       ],
-      "id": "b920dab4-89a3-4ec4-98ec-4f122dd0f4d3",
+      "id": "5698d549-b1dc-4ee1-be19-ac9c650c01ed",
       "name": "Filter to URL and Name"
     },
     {
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        496,
-        176
+        896,
+        0
       ],
-      "id": "f2520213-76e4-4cf5-ae02-19d4c6c7fbab",
+      "id": "02a08747-1026-47d1-a633-f9e9911d02e7",
       "name": "POST Results to Backend",
       "alwaysOutputData": false,
       "executeOnce": false,
@@ -98,10 +98,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        704,
-        176
+        1104,
+        0
       ],
-      "id": "1f018654-a7a0-4f9a-9d42-f563799ffe7b",
+      "id": "f06e67d7-126f-4d93-aab8-039abba20566",
       "name": "Respond to Webhook",
       "retryOnFail": true,
       "onError": "continueErrorOutput"
@@ -113,10 +113,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        272,
-        176
+        672,
+        0
       ],
-      "id": "d1a9d312-2cfc-455d-8939-21402604b487",
+      "id": "ceaaaf72-df41-438d-9288-3a285683bbdb",
       "name": "Combine all results into one object."
     }
   ],
@@ -135,6 +135,13 @@
     },
     "Firecrawl Search": {
       "main": [
+        [
+          {
+            "node": "Filter to URL and Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Filter to URL and Name",
@@ -184,7 +191,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "ec15dfda-3c9f-4f8a-8015-9c91e913a3d1",
+  "versionId": "d59112ac-08e3-4ec9-956f-2a01b8cbac0a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"

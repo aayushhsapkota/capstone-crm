@@ -12,7 +12,7 @@
       "typeVersion": 2.1,
       "position": [
         -752,
-        608
+        656
       ],
       "id": "d3b284b3-b72d-4d78-ba4b-61bb5ed738b4",
       "name": "Webhook",
@@ -26,7 +26,7 @@
       "typeVersion": 3,
       "position": [
         -304,
-        608
+        660
       ],
       "id": "398ae347-987c-4ed2-9640-74cf09f5395a",
       "name": "Loop Over Items"
@@ -38,8 +38,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        384,
-        512
+        376,
+        560
       ],
       "id": "d31fd25d-81c7-457e-8fc7-e22fd7a4b00f",
       "name": "Gemini Model",
@@ -63,7 +63,7 @@
       "typeVersion": 1.4,
       "position": [
         368,
-        288
+        336
       ],
       "id": "69009d5d-3ec0-402d-b03e-4989d777a6f5",
       "name": "AI Extract Business Data",
@@ -76,8 +76,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        512,
-        512
+        504,
+        560
       ],
       "id": "c109367b-6c43-4316-bf01-1d2d1eac39f9",
       "name": "Structured Output Parser"
@@ -90,7 +90,7 @@
       "typeVersion": 2,
       "position": [
         720,
-        608
+        660
       ],
       "id": "317a6009-36d4-4ced-85d8-6858763f30a1",
       "name": "Attach queryResultId"
@@ -104,7 +104,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        144,
+        432,
         144
       ],
       "id": "0ae2cf5c-60e7-42d2-832f-cbadc10c20d0",
@@ -118,7 +118,7 @@
       "typeVersion": 2,
       "position": [
         -80,
-        240
+        144
       ],
       "id": "f43b1fce-cf5b-44d2-89cf-8c8d70ca970f",
       "name": "Aggregate Results"
@@ -138,7 +138,7 @@
       "typeVersion": 4.2,
       "position": [
         -80,
-        528
+        588
       ],
       "id": "59389d05-e7e2-44f1-932f-d2c8d856dfa7",
       "name": "scrape from firecrawl",
@@ -166,7 +166,7 @@
       "typeVersion": 4.2,
       "position": [
         144,
-        336
+        144
       ],
       "id": "c490fbdf-d872-4c02-889c-3931e2323ef3",
       "name": "Send Results to Backend",
@@ -187,7 +187,7 @@
       "typeVersion": 2,
       "position": [
         -528,
-        608
+        660
       ],
       "id": "b00cd05e-a007-4ab5-887d-812e2c79f25c",
       "name": "Split the body into separate Items"
@@ -221,7 +221,7 @@
       "typeVersion": 2.2,
       "position": [
         144,
-        528
+        588
       ],
       "id": "7a3a1c79-6827-4acc-bded-2e20686af672",
       "name": "Has Firecrawl Error?"
@@ -234,7 +234,7 @@
       "typeVersion": 2,
       "position": [
         432,
-        688
+        736
       ],
       "id": "987a354a-7df1-4cf3-b0f0-759de255a090",
       "name": "Build Error Result"
@@ -360,11 +360,6 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "Send Results to Backend",
             "type": "main",
             "index": 0
@@ -429,6 +424,17 @@
           }
         ]
       ]
+    },
+    "Send Results to Backend": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -436,7 +442,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "0712502c-21f3-4390-9142-19d802c94b64",
+  "versionId": "85c98e94-e6ae-4ec2-bcce-f3272055b161",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
