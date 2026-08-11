@@ -228,7 +228,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const queryResultId = $('Split the body into separate Items').item.json.id;\n\nreturn [{\n  json: {\n    queryResultId,\n    name: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    specialisation: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    location: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    phone: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    email: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    yearsExperience: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    services: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    awards: 'SCRAPE_FIRECRAWL_REQUEST_ERROR'\n  }\n}];"
+        "jsCode": "const queryResultId = $('Split the body into separate Items').first().json.id;\nreturn [{\n  json: {\n    queryResultId,\n    name: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    specialisation: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    location: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    phone: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    email: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    yearsExperience: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    services: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    awards: 'SCRAPE_FIRECRAWL_REQUEST_ERROR'\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -436,7 +436,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "1bcb4950-a188-4ef2-a993-755a134ecea3",
+  "versionId": "0712502c-21f3-4390-9142-19d802c94b64",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
