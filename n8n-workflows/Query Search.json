@@ -26,7 +26,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"query\": \"{{ $json.body.query + \" -site:yelp.com -site:healthgrades.com -site:yellowpages.com -site:facebook.com -site:hotdoc.com.au -site:healthengine.com.au -site:healthgrades.com -site:yellowpages.ca -site:ratemds.com\" }}\",\n  \"limit\": 3 ,\n  \"sources\": [\n    \"web\"\n  ],\n  \"location\": \"australia\",\n  \"timeout\": 60000,\n  \"ignoreInvalidURLs\": false\n} ",
+        "jsonBody": "={\n  \"query\": \"{{ $json.body.text + \" -site:yelp.com -site:healthgrades.com -site:yellowpages.com -site:facebook.com -site:hotdoc.com.au -site:healthengine.com.au -site:healthgrades.com -site:yellowpages.ca -site:ratemds.com\" }}\",\n  \"limit\": 3 ,\n  \"sources\": [\n    \"web\"\n  ],\n  \"location\": \"australia\",\n  \"timeout\": 60000,\n  \"ignoreInvalidURLs\": false\n} ",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",

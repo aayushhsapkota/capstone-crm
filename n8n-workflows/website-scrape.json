@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -672,
-        496
+        -752,
+        608
       ],
-      "id": "f62f300c-a4ce-4548-8bf3-cd05890f6c43",
+      "id": "d3b284b3-b72d-4d78-ba4b-61bb5ed738b4",
       "name": "Webhook",
       "webhookId": "scrape-websites"
     },
@@ -25,10 +25,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -224,
-        496
+        -304,
+        608
       ],
-      "id": "f3ed2186-106d-4b9e-b876-bfb7a5407b02",
+      "id": "398ae347-987c-4ed2-9640-74cf09f5395a",
       "name": "Loop Over Items"
     },
     {
@@ -38,10 +38,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        240,
-        720
+        384,
+        512
       ],
-      "id": "c680b8ad-eafe-4db4-a2b1-186bcc010665",
+      "id": "d31fd25d-81c7-457e-8fc7-e22fd7a4b00f",
       "name": "Gemini Model",
       "credentials": {
         "googlePalmApi": {
@@ -62,10 +62,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "position": [
-        224,
-        496
+        368,
+        288
       ],
-      "id": "f9bd6470-0f1d-4563-8635-fdaef6738873",
+      "id": "69009d5d-3ec0-402d-b03e-4989d777a6f5",
       "name": "AI Extract Business Data",
       "retryOnFail": true
     },
@@ -76,10 +76,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        368,
-        720
+        512,
+        512
       ],
-      "id": "1c51f376-ef30-45af-a5cb-9a35e5b03fbf",
+      "id": "c109367b-6c43-4316-bf01-1d2d1eac39f9",
       "name": "Structured Output Parser"
     },
     {
@@ -89,10 +89,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        576,
-        624
+        720,
+        608
       ],
-      "id": "fedf55c4-ae30-4e22-b6b2-226c6a705a05",
+      "id": "317a6009-36d4-4ced-85d8-6858763f30a1",
       "name": "Attach queryResultId"
     },
     {
@@ -104,10 +104,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        288,
-        0
+        144,
+        144
       ],
-      "id": "ea10ba1c-4851-4fc3-8c1a-da43667614ad",
+      "id": "0ae2cf5c-60e7-42d2-832f-cbadc10c20d0",
       "name": "Respond to Webhook"
     },
     {
@@ -117,10 +117,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
-        96
+        -80,
+        240
       ],
-      "id": "5154d543-4a82-4886-9a7c-4cf44118cab3",
+      "id": "f43b1fce-cf5b-44d2-89cf-8c8d70ca970f",
       "name": "Aggregate Results"
     },
     {
@@ -137,10 +137,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        0,
-        496
+        -80,
+        528
       ],
-      "id": "f8a80853-cdca-41e9-9f7a-d85ee628fcc2",
+      "id": "59389d05-e7e2-44f1-932f-d2c8d856dfa7",
       "name": "scrape from firecrawl",
       "retryOnFail": true,
       "credentials": {
@@ -165,18 +165,18 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        288,
-        192
+        144,
+        336
       ],
-      "id": "d5bdfc3f-251b-458f-8263-714d5d1baf90",
+      "id": "c490fbdf-d872-4c02-889c-3931e2323ef3",
       "name": "Send Results to Backend",
+      "retryOnFail": true,
       "credentials": {
         "httpHeaderAuth": {
           "id": "UF47U9kTZIxCfvcJ",
           "name": "n8n secret"
         }
       },
-      "retryOnFail": true,
       "onError": "continueErrorOutput"
     },
     {
@@ -186,10 +186,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -448,
-        496
+        -528,
+        608
       ],
-      "id": "de0b5f68-8589-4d64-a1ae-463563f1a735",
+      "id": "b00cd05e-a007-4ab5-887d-812e2c79f25c",
       "name": "Split the body into separate Items"
     },
     {
@@ -220,10 +220,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        112,
-        350
+        144,
+        528
       ],
-      "id": "has-firecrawl-error-if-0001",
+      "id": "7a3a1c79-6827-4acc-bded-2e20686af672",
       "name": "Has Firecrawl Error?"
     },
     {
@@ -233,10 +233,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        112,
-        620
+        432,
+        688
       ],
-      "id": "build-error-result-code-0001",
+      "id": "987a354a-7df1-4cf3-b0f0-759de255a090",
       "name": "Build Error Result"
     }
   ],
@@ -247,10 +247,10 @@
           "headers": {
             "connection": "upgrade",
             "host": "myn8n.au",
-            "x-real-ip": "110.175.183.8",
-            "x-forwarded-for": "110.175.183.8",
+            "x-real-ip": "13.238.25.120",
+            "x-forwarded-for": "13.238.25.120",
             "x-forwarded-proto": "https",
-            "content-length": "574",
+            "content-length": "293",
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "user-agent": "axios/1.16.1",
@@ -261,26 +261,15 @@
           "body": {
             "results": [
               {
-                "id": "6076cc76-928b-4052-a3e3-c41b681182af",
-                "queryId": "8a2a86ec-2eba-41d4-b8bd-9c0dd63468ef",
-                "url": "https://smilebrightdental.com.au",
-                "businessName": "Smile Bright Dental",
+                "id": "582ecd28-be47-43ca-b2d1-5d0dfc78d455",
+                "queryId": "ba140e97-a5f9-41cd-9fde-de7675485268",
+                "url": "not-a-valid-url-at-all",
+                "businessName": "Deliberately Broken URL Test",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-07T23:51:25.112Z"
-              },
-              {
-                "id": "097052f9-905e-4407-b38a-5ebd2e97f4ee",
-                "queryId": "8a2a86ec-2eba-41d4-b8bd-9c0dd63468ef",
-                "url": "https://citydentalmelb.com.au",
-                "businessName": "City Dental Melbourne",
-                "flagged": false,
-                "flagReason": null,
-                "scrapedAt": null,
-                "businessId": null,
-                "createdAt": "2026-08-07T23:51:25.112Z"
+                "createdAt": "2026-08-11T13:40:05.410Z"
               }
             ]
           },
@@ -391,6 +380,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Has Firecrawl Error?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -440,7 +436,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "50e8785f-2e20-4454-9c0b-7e22dc16ea11",
+  "versionId": "1bcb4950-a188-4ef2-a993-755a134ecea3",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
