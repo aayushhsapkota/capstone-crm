@@ -16,21 +16,36 @@ function validateSecret(req, res) {
 router.post('/query-results', async (req, res, next) => {
   if (!validateSecret(req, res)) return;
   try {
-    const { queryId, results } = req.body;
+    const { queryId, results, error } = req.body;
 
-    await prisma.queryResult.createMany({
-      data: results.map((r) => ({
-        queryId,
-        url: r.url,
-        businessName: r.businessName || null,
-      })),
-      skipDuplicates: true,
-    });
+    if (results?.length) {
+      await prisma.queryResult.createMany({
+        data: results.map((r) => ({
+          queryId,
+          url: r.url,
+          businessName: r.businessName || null,
+        })),
+        skipDuplicates: true,
+      });
+    }
 
-    await prisma.query.update({
-      where: { id: queryId },
-      data: { status: 'COMPLETE', resultsCount: results.length },
-    });
+    if (error) {
+      await prisma.query.update({
+        where: { id: queryId },
+        data: { status: 'FAILED', resultsCount: results?.length || 0 },
+      });
+      await prisma.notification.create({
+        data: {
+          type: 'QUERY_FAILED',
+          message: `Search query failed: ${error}`,
+        },
+      });
+    } else {
+      await prisma.query.update({
+        where: { id: queryId },
+        data: { status: 'COMPLETE', resultsCount: results?.length || 0 },
+      });
+    }
 
     res.json({ ok: true });
   } catch (err) {

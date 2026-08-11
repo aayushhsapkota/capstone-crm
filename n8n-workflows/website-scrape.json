@@ -175,7 +175,9 @@
           "id": "UF47U9kTZIxCfvcJ",
           "name": "n8n secret"
         }
-      }
+      },
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -189,6 +191,53 @@
       ],
       "id": "de0b5f68-8589-4d64-a1ae-463563f1a735",
       "name": "Split the body into separate Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-firecrawl-error-cond-0001",
+              "leftValue": "={{ $json.error ? true : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        350
+      ],
+      "id": "has-firecrawl-error-if-0001",
+      "name": "Has Firecrawl Error?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const queryResultId = $('Split the body into separate Items').item.json.id;\n\nreturn [{\n  json: {\n    queryResultId,\n    name: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    specialisation: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    location: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    phone: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    email: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    yearsExperience: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    services: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    awards: 'SCRAPE_FIRECRAWL_REQUEST_ERROR'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        620
+      ],
+      "id": "build-error-result-code-0001",
+      "name": "Build Error Result"
     }
   ],
   "pinData": {
@@ -338,7 +387,7 @@
       "main": [
         [
           {
-            "node": "AI Extract Business Data",
+            "node": "Has Firecrawl Error?",
             "type": "main",
             "index": 0
           }
@@ -346,6 +395,35 @@
       ]
     },
     "Split the body into separate Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Firecrawl Error?": {
+      "main": [
+        [
+          {
+            "node": "Build Error Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Extract Business Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Result": {
       "main": [
         [
           {

@@ -182,6 +182,7 @@ enum NotificationType {
   SCRAPE_COMPLETE
   UNSUBSCRIBED
   CAMPAIGN_COMPLETE
+  QUERY_FAILED
 }
 
 // ─── OWNER PROFILE ───────────────────────────────────────────────────────────
