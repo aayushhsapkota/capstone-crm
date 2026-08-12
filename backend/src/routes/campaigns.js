@@ -93,6 +93,11 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
 
     try {
       const draft = await callN8n(process.env.N8N_WEBHOOK_GENERATE_EMAIL, { business, offer, ownerProfile });
+
+      if (draft?.error) {
+        throw new Error(draft.error);
+      }
+
       const result = await callN8n(process.env.N8N_WEBHOOK_SEND_EMAIL, {
         business,
         subject: draft.subject,
@@ -130,9 +135,10 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         data: { sentCount: { increment: 1 } },
       });
     } catch (err) {
+      const errorMessage = err.response?.data?.error || err.message;
       await prisma.bulkCampaignJob.update({
         where: { id: job.id },
-        data: { status: 'FAILED', errorMessage: err.message, processedAt: new Date() },
+        data: { status: 'FAILED', errorMessage, processedAt: new Date() },
       });
       await prisma.bulkCampaign.update({
         where: { id: campaignId },

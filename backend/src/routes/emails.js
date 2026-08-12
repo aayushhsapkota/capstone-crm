@@ -35,8 +35,16 @@ router.post('/generate', async (req, res, next) => {
       ownerProfile,
     });
 
+    if (draft?.error) {
+      return res.status(502).json({ error: draft.error });
+    }
+
     res.json(draft); // { subject, bodyHtml }
   } catch (err) {
+    const n8nError = err.response?.data?.error;
+    if (n8nError) {
+      return res.status(502).json({ error: n8nError });
+    }
     next(err);
   }
 });

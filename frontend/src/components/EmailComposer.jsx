@@ -7,12 +7,16 @@ export default function EmailComposer({ businessId, onSent }) {
   const [offerId, setOfferId] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const handleGenerate = async () => {
     setGenerating(true);
+    setError('');
     try {
       const generated = await generateEmail({ businessId, offerId });
       setDraft(generated);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to generate email. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -21,10 +25,13 @@ export default function EmailComposer({ businessId, onSent }) {
   const handleSend = async () => {
     if (!draft.subject.trim() || !draft.bodyHtml.trim()) return;
     setSending(true);
+    setError('');
     try {
       await sendEmail({ businessId, subject: draft.subject, bodyHtml: draft.bodyHtml, offerId });
       setDraft({ subject: '', bodyHtml: '' });
       onSent?.();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send email. Please try again.');
     } finally {
       setSending(false);
     }
@@ -32,6 +39,11 @@ export default function EmailComposer({ businessId, onSent }) {
 
   return (
     <div className="border-t border-slate-200 pt-3 space-y-2">
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {error}
+        </div>
+      )}
       <input
         type="text"
         value={draft.subject}
