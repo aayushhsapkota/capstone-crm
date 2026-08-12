@@ -31,7 +31,10 @@ router.post('/scrape', async (req, res, next) => {
       where: { id: { in: ids } },
     });
 
-    // Fire-and-forget — n8n calls back to /api/webhooks/scrape-complete
+    // Fire-and-forget, same shape as /queries/run — /api/webhooks/scrape-complete is
+    // where per-result success/flagged outcomes actually land. .catch(console.error)
+    // only covers the dispatch call itself failing to reach n8n; it's logged
+    // server-side rather than surfaced, since the caller already got a 200 with a count.
     callN8n(process.env.N8N_WEBHOOK_SCRAPE_WEBSITES, { results }).catch(console.error);
 
     res.json({ message: `Scraping ${results.length} URLs`, count: results.length });

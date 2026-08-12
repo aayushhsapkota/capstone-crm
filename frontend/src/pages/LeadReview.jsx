@@ -13,6 +13,7 @@ export default function LeadReview() {
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const fetchResults = useCallback(async () => {
     setLoading(true);
@@ -47,10 +48,16 @@ export default function LeadReview() {
 
   const handleScrapeSelected = async () => {
     setScraping(true);
+    setError('');
     try {
       const { count } = await scrapeQueryResults([...selectedIds]);
       setMessage(`Scraping ${count} URL${count === 1 ? '' : 's'}…`);
       setSelectedIds(new Set());
+    } catch (err) {
+      // Same caveat as QueryManager's runQuery — the backend dispatches to n8n
+      // fire-and-forget, so this only catches request-level failures. A failure inside
+      // the scrape itself is flagged per-result later via scrape-complete's sentinel check.
+      setError(err.response?.data?.error || 'Failed to start scraping. Please try again.');
     } finally {
       setScraping(false);
     }
@@ -68,6 +75,12 @@ export default function LeadReview() {
       {message && (
         <div className="mt-4 px-3 py-2 bg-green-50 text-green-700 text-sm rounded-md">
           {message}
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-sm rounded-md">
+          {error}
         </div>
       )}
 

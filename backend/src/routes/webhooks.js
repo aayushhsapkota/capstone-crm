@@ -29,6 +29,9 @@ router.post('/query-results', async (req, res, next) => {
       });
     }
 
+    // Query Search sends an explicit `error` field on failure (its Firecrawl node has
+    // "continue using error output" wired to a separate branch). Must check it here
+    // rather than always marking COMPLETE, since n8n still calls back with 200 either way.
     if (error) {
       await prisma.query.update({
         where: { id: queryId },
@@ -53,6 +56,10 @@ router.post('/query-results', async (req, res, next) => {
   }
 });
 
+// Sentinel value the scrape workflow writes into `name` (and every other field) when
+// its Firecrawl node errors — this endpoint receives a flat array of per-business
+// results with no wrapping success/error flag, so a failure has to be smuggled through
+// as data rather than a top-level `error` field like /query-results uses.
 const SCRAPE_ERROR_PATTERN = /^SCRAPE_.*_ERROR$/;
 
 // POST /api/webhooks/scrape-complete — n8n calls after scraping + Gemini extraction
@@ -62,6 +69,8 @@ router.post('/scrape-complete', async (req, res, next) => {
     const { results } = req.body;
 
     for (const r of results) {
+      // Flag instead of creating a business — trusts the sentinel over blindly
+      // treating LLM/scrape garbage as a real business name.
       if (SCRAPE_ERROR_PATTERN.test(r.name)) {
         await prisma.queryResult.update({
           where: { id: r.queryResultId },

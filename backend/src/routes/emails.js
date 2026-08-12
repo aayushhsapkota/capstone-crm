@@ -35,6 +35,10 @@ router.post('/generate', async (req, res, next) => {
       ownerProfile,
     });
 
+    // The generate-email workflow responds 200 with {subject, bodyHtml} on success,
+    // but 500 with {error} when the LLM node itself fails (bad credential, rate limit,
+    // etc). draft?.error covers the case where n8n still answers 200 with an error body;
+    // the catch below covers the more common 500 case, which axios throws on.
     if (draft?.error) {
       return res.status(502).json({ error: draft.error });
     }
@@ -64,6 +68,9 @@ router.post('/send', async (req, res, next) => {
       bodyHtml,
     });
 
+    // Unlike generate-email, the send-email workflow always responds 200 — even on
+    // Gmail failure — with {ok: false, error} instead of a non-2xx status, so the
+    // failure has to be checked explicitly rather than relying on axios to throw.
     if (result?.ok !== true) {
       await prisma.notification.create({
         data: {

@@ -14,6 +14,7 @@ export default function QueryManager() {
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const fetchQueries = async () => {
@@ -31,10 +32,16 @@ export default function QueryManager() {
     e.preventDefault();
     if (!text.trim()) return;
     setSubmitting(true);
+    setError('');
     try {
       const query = await runQuery(text.trim());
       setQueries((prev) => [query, ...prev]);
       setText('');
+    } catch (err) {
+      // Backend dispatches to n8n fire-and-forget, so this only catches request-level
+      // failures (network error, DB error creating the Query row) — not a failure
+      // inside the search itself, which surfaces later via the query's FAILED status.
+      setError(err.response?.data?.error || 'Failed to start query. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -44,6 +51,12 @@ export default function QueryManager() {
     <div>
       <h1 className="text-2xl font-semibold text-slate-800">Query Manager</h1>
       <p className="text-slate-500 mt-1">Run search queries and view history.</p>
+
+      {error && (
+        <div className="mt-4 max-w-xl text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 flex gap-2 max-w-xl">
         <input

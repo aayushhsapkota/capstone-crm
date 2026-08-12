@@ -23,7 +23,12 @@ router.post('/run', async (req, res, next) => {
       data: { text, status: 'RUNNING' },
     });
 
-    // Fire-and-forget — n8n will callback to /api/webhooks/query-results
+    // Fire-and-forget — n8n will callback to /api/webhooks/query-results, which is
+    // where the real success/FAILED outcome gets recorded. .catch(console.error) only
+    // guards against the dispatch request itself failing to reach n8n (e.g. n8n down);
+    // it can't distinguish that from a failure inside the search, so it's logged
+    // server-side rather than surfaced to the caller — the query would just stay
+    // RUNNING with no callback in that case.
     callN8n(process.env.N8N_WEBHOOK_SCRAPE_SEARCH, {
       queryId: query.id,
       text,

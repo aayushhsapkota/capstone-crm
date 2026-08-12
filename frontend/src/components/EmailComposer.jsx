@@ -16,6 +16,9 @@ export default function EmailComposer({ businessId, onSent }) {
       const generated = await generateEmail({ businessId, offerId });
       setDraft(generated);
     } catch (err) {
+      // err.response.data.error is the real message the backend forwarded from n8n
+      // (e.g. an LLM auth/rate-limit failure) — fall back to a generic message for
+      // anything else (network error, backend down, etc).
       setError(err.response?.data?.error || 'Failed to generate email. Please try again.');
     } finally {
       setGenerating(false);
@@ -31,6 +34,8 @@ export default function EmailComposer({ businessId, onSent }) {
       setDraft({ subject: '', bodyHtml: '' });
       onSent?.();
     } catch (err) {
+      // Same pattern as handleGenerate — surfaces the real Gmail/n8n failure reason
+      // (e.g. "Email send failed") instead of swallowing it silently.
       setError(err.response?.data?.error || 'Failed to send email. Please try again.');
     } finally {
       setSending(false);

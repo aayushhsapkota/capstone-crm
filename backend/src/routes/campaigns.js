@@ -94,6 +94,8 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
     try {
       const draft = await callN8n(process.env.N8N_WEBHOOK_GENERATE_EMAIL, { business, offer, ownerProfile });
 
+      // Same generate-email failure shape as emails.js /generate — turn a 200-with-error
+      // body into a thrown error so it's caught below with the other n8n failure modes.
       if (draft?.error) {
         throw new Error(draft.error);
       }
@@ -104,6 +106,8 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         bodyHtml: draft.bodyHtml,
       });
 
+      // send-email always responds 200, so a failed send has to be detected via
+      // {ok: false} rather than a caught exception — same as emails.js /send.
       if (result?.ok !== true) {
         throw new Error(result?.error || 'Email send failed');
       }
@@ -135,6 +139,9 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         data: { sentCount: { increment: 1 } },
       });
     } catch (err) {
+      // err.response?.data?.error carries the real n8n/Gemini/Gmail failure message
+      // when callN8n's axios call threw (e.g. generate-email's 500); err.message is
+      // the fallback for errors thrown manually above (e.g. the {ok: false} case).
       const errorMessage = err.response?.data?.error || err.message;
       await prisma.bulkCampaignJob.update({
         where: { id: job.id },
