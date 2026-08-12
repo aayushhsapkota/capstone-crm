@@ -197,5 +197,6 @@ model OwnerProfile {
   signatureHtml  String?
   logoUrl        String?
   heroImageUrl   String?  // Intro email header image
+  excludeSites   String[] @default([]) // Domains appended as -site: exclusions to every search query
   updatedAt      DateTime @updatedAt
 }

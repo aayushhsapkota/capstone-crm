@@ -3,6 +3,21 @@ import prisma from '../lib/prisma.js';
 
 const router = Router();
 
+// Starting point for a new profile's excludeSites — these are just a seed, not a fixed
+// list. Edit them on the Owner Profile page once you know which directory sites are
+// actually noise for your industry (health-specific entries won't be relevant to
+// everyone).
+const DEFAULT_EXCLUDE_SITES = [
+  'yelp.com',
+  'healthgrades.com',
+  'yellowpages.com',
+  'facebook.com',
+  'hotdoc.com.au',
+  'healthengine.com.au',
+  'yellowpages.ca',
+  'ratemds.com',
+];
+
 // GET /api/owner-profile — creates default if none exists
 router.get('/', async (req, res, next) => {
   try {
@@ -13,6 +28,7 @@ router.get('/', async (req, res, next) => {
           companyName: 'My Company',
           senderName: 'Your Name',
           senderEmail: 'you@example.com',
+          excludeSites: DEFAULT_EXCLUDE_SITES,
         },
       });
     }

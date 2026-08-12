@@ -11,6 +11,7 @@ const STATUS_STYLES = {
 
 export default function QueryManager() {
   const [text, setText] = useState('');
+  const [limit, setLimit] = useState(3);
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +35,7 @@ export default function QueryManager() {
     setSubmitting(true);
     setError('');
     try {
-      const query = await runQuery(text.trim());
+      const query = await runQuery(text.trim(), limit);
       setQueries((prev) => [query, ...prev]);
       setText('');
     } catch (err) {
@@ -65,6 +66,15 @@ export default function QueryManager() {
           onChange={(e) => setText(e.target.value)}
           placeholder="e.g. dental clinics in Sydney NSW"
           className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        />
+        <input
+          type="number"
+          min={1}
+          max={20}
+          value={limit}
+          onChange={(e) => setLimit(e.target.value)}
+          title="Number of results to fetch"
+          className="w-16 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-slate-400"
         />
         <button
           type="submit"

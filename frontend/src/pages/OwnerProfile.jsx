@@ -12,6 +12,8 @@ function toServiceRow(entry) {
 export default function OwnerProfile() {
   const [form, setForm] = useState(null);
   const [serviceRows, setServiceRows] = useState([]);
+  const [excludeSites, setExcludeSites] = useState([]);
+  const [newExcludeSite, setNewExcludeSite] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -30,6 +32,7 @@ export default function OwnerProfile() {
       heroImageUrl: profile.heroImageUrl || '',
     });
     setServiceRows((profile.services || []).map(toServiceRow));
+    setExcludeSites(profile.excludeSites || []);
     setLoading(false);
   }, []);
 
@@ -53,6 +56,17 @@ export default function OwnerProfile() {
     setServiceRows((prev) => prev.filter((r) => r._id !== rowId));
   };
 
+  const handleAddExcludeSite = () => {
+    const site = newExcludeSite.trim().toLowerCase();
+    if (!site || excludeSites.includes(site)) return;
+    setExcludeSites((prev) => [...prev, site]);
+    setNewExcludeSite('');
+  };
+
+  const handleRemoveExcludeSite = (site) => {
+    setExcludeSites((prev) => prev.filter((s) => s !== site));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -68,6 +82,7 @@ export default function OwnerProfile() {
         logoUrl: form.logoUrl || null,
         heroImageUrl: form.heroImageUrl || null,
         services,
+        excludeSites,
       });
       setForm((prev) => ({ ...prev, id: updated.id }));
       setMessage('Saved.');
@@ -182,6 +197,56 @@ export default function OwnerProfile() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-sm font-semibold text-slate-700">Excluded Sites</h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Domains to exclude from every search query (e.g. directory sites). These are
+          specific to your industry — edit the list if you switch to a different one.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {excludeSites.length === 0 ? (
+            <p className="text-slate-400 text-xs">No excluded sites.</p>
+          ) : (
+            excludeSites.map((site) => (
+              <span
+                key={site}
+                className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs rounded-full px-3 py-1"
+              >
+                {site}
+                <button
+                  onClick={() => handleRemoveExcludeSite(site)}
+                  className="text-slate-400 hover:text-red-600"
+                  aria-label={`Remove ${site}`}
+                >
+                  ✕
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+        <div className="mt-3 flex gap-2 max-w-sm">
+          <input
+            type="text"
+            value={newExcludeSite}
+            onChange={(e) => setNewExcludeSite(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddExcludeSite();
+              }
+            }}
+            placeholder="e.g. yelp.com"
+            className="flex-1 border border-slate-300 rounded-md px-3 py-1.5 text-sm"
+          />
+          <button
+            onClick={handleAddExcludeSite}
+            className="text-xs px-3 py-1.5 border border-slate-300 rounded-md hover:bg-slate-50"
+          >
+            + Add
+          </button>
         </div>
       </div>
 

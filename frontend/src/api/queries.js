@@ -5,7 +5,7 @@ export async function getQueries() {
   return data;
 }
 
-export async function runQuery(text) {
-  const { data } = await client.post('/queries/run', { text });
+export async function runQuery(text, limit) {
+  const { data } = await client.post('/queries/run', { text, limit });
   return data;
 }
