@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQueries, runQuery } from '../api/queries.js';
 
@@ -17,16 +17,53 @@ export default function QueryManager() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const pollIntervalRef = useRef(null);
 
   const fetchQueries = async () => {
-    setLoading(true);
     const data = await getQueries();
     setQueries(data);
-    setLoading(false);
+    return data;
+  };
+
+  // n8n reports a query's real outcome (COMPLETE/FAILED) back to the server
+  // asynchronously, well after this page's initial load — nothing pushes that update
+  // to the browser on its own, so without polling a RUNNING query would look stuck
+  // forever until a manual refresh. Only polls while something's actually in flight,
+  // same pattern as useCampaignProgress.
+  const startPolling = () => {
+    // Guard against a second interval stacking up if this gets called again while one
+    // is already running (e.g. mount finds a pending query, then handleSubmit calls
+    // this too right after) — only one poll loop should ever be active at a time.
+    if (pollIntervalRef.current) return;
+    pollIntervalRef.current = setInterval(async () => {
+      const data = await fetchQueries();
+      const stillPending = data.some((q) => q.status === 'RUNNING' || q.status === 'PENDING');
+      // Self-stopping: once nothing is left to wait on, clear the interval rather than
+      // polling forever in the background for no reason.
+      if (!stillPending) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    }, 5000);
   };
 
   useEffect(() => {
-    fetchQueries();
+    (async () => {
+      setLoading(true);
+      const data = await fetchQueries();
+      setLoading(false);
+      // Only start polling if the list we just loaded actually has something in
+      // flight — e.g. a query kicked off in a previous session/tab that hasn't
+      // resolved yet. A page full of COMPLETE/FAILED queries has nothing to wait on.
+      const hasPending = data.some((q) => q.status === 'RUNNING' || q.status === 'PENDING');
+      if (hasPending) startPolling();
+    })();
+
+    // Stop polling if the user navigates away mid-search, so it doesn't keep firing
+    // requests for a component that's no longer on screen.
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -38,6 +75,9 @@ export default function QueryManager() {
       const query = await runQuery(text.trim(), limit);
       setQueries((prev) => [query, ...prev]);
       setText('');
+      // Polling may have already stopped (e.g. all earlier queries had finished) —
+      // this new query is RUNNING, so make sure the poll loop is active again.
+      startPolling();
     } catch (err) {
       // Backend dispatches to n8n fire-and-forget, so this only catches request-level
       // failures (network error, DB error creating the Query row) — not a failure

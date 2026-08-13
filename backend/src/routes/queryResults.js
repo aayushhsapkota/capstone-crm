@@ -4,17 +4,20 @@ import { callN8n } from '../lib/n8n.js';
 
 const router = Router();
 
-// GET /api/query-results — unscraped, unflagged. Optional ?queryId=
+// GET /api/query-results — unscraped (flagged and unflagged). Optional ?queryId=
+// Flagged results are included, not filtered out here — otherwise there's no way to
+// review or undo a flag (e.g. an accidental one) without going straight to the
+// database. The frontend decides whether to show them, defaulting to hidden.
 router.get('/', async (req, res, next) => {
   try {
     const { queryId } = req.query;
-    const where = { scrapedAt: null, flagged: false };
+    const where = { scrapedAt: null };
     if (queryId) where.queryId = queryId;
 
     const results = await prisma.queryResult.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { query: { select: { text: true } } },
+      include: { query: { select: { text: true, ranAt: true } } },
     });
     res.json(results);
   } catch (err) {

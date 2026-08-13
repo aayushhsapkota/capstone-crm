@@ -19,3 +19,10 @@ export async function flagQueryResult(id, flagReason) {
   });
   return data;
 }
+
+export async function unflagQueryResult(id) {
+  const { data } = await client.patch(`/query-results/${id}/flag`, {
+    flagged: false,
+  });
+  return data;
+}
