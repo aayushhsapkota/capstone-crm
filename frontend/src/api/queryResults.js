@@ -1,8 +1,11 @@
 import client from './client.js';
 
-export async function getQueryResults(queryId) {
+// Returns { results, total, page, pageSize } — queryId is required now that this is
+// purely the paginated per-query leads view (the cross-query overview lives on
+// GET /api/queries's pendingLeadsCount instead).
+export async function getQueryResults({ queryId, page = 1, pageSize = 50, includeFlagged = false }) {
   const { data } = await client.get('/query-results', {
-    params: queryId ? { queryId } : {},
+    params: { queryId, page, pageSize, includeFlagged },
   });
   return data;
 }

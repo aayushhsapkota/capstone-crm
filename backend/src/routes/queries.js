@@ -8,7 +8,26 @@ const router = Router();
 router.get('/', async (req, res, next) => {
   try {
     const queries = await prisma.query.findMany({ orderBy: { ranAt: 'desc' } });
-    res.json(queries);
+
+    // pendingLeadsCount = still-actionable leads (unscraped AND unflagged) — a
+    // flagged-but-unscraped lead has already been reviewed and dismissed, so it
+    // shouldn't count as something still needing attention. Computed via groupBy
+    // rather than a per-query query in a loop, and separately from the main findMany
+    // rather than a filtered relation _count, since that keeps this correct and
+    // simple regardless of Prisma version quirks around filtered relation counts.
+    const pendingCounts = await prisma.queryResult.groupBy({
+      by: ['queryId'],
+      where: { scrapedAt: null, flagged: false },
+      _count: { _all: true },
+    });
+    const pendingByQuery = Object.fromEntries(pendingCounts.map((p) => [p.queryId, p._count._all]));
+
+    const withPending = queries.map((q) => ({
+      ...q,
+      pendingLeadsCount: pendingByQuery[q.id] || 0,
+    }));
+
+    res.json(withPending);
   } catch (err) {
     next(err);
   }
