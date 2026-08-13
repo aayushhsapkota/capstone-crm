@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getQueryResults, scrapeQueryResults, flagQueryResult, unflagQueryResult } from '../api/queryResults.js';
 import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
+import { useToast } from '../hooks/useToast.js';
+import Toast from '../components/Toast.jsx';
 
 const FLAG_REASONS = ['Directory', 'Forum', 'Irrelevant', 'Duplicate', 'Other'];
 const PAGE_SIZE = 50;
@@ -22,9 +24,8 @@ export default function LeadReviewDetail({ queryId }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [excludingId, setExcludingId] = useState(null);
+  const [toast, showToast] = useToast();
 
   const fetchResults = useCallback(
     async (targetPage = page) => {
@@ -61,6 +62,29 @@ export default function LeadReviewDetail({ queryId }) {
     });
   };
 
+  // Scoped to the current page, same as everything else here now that results are
+  // paginated — selecting "all" means all selectable rows actually loaded right now,
+  // not every lead across every page for this query.
+  const selectableRows = results.filter((r) => !r.flagged);
+  const allSelected = selectableRows.length > 0 && selectableRows.every((r) => selectedIds.has(r.id));
+  const someSelected = selectedIds.size > 0 && !allSelected;
+  const selectAllRef = useRef(null);
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected;
+  }, [someSelected]);
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (allSelected) {
+        const next = new Set(prev);
+        selectableRows.forEach((r) => next.delete(r.id));
+        return next;
+      }
+      return new Set([...prev, ...selectableRows.map((r) => r.id)]);
+    });
+  };
+
   const handleFlag = async (id, flagReason) => {
     await flagQueryResult(id, flagReason);
     // Re-fetch rather than patch locally — flagging can remove this row from the
@@ -76,11 +100,10 @@ export default function LeadReviewDetail({ queryId }) {
   const handleExcludeDomain = async (id, url) => {
     const domain = extractDomain(url);
     if (!domain) {
-      setError('Could not figure out a domain from that URL.');
+      showToast('Could not figure out a domain from that URL.', 'error');
       return;
     }
     setExcludingId(id);
-    setError('');
     try {
       // Read-then-write against the current saved profile rather than any local
       // copy — this page has no other reason to hold owner profile state, and a
@@ -88,13 +111,13 @@ export default function LeadReviewDetail({ queryId }) {
       const profile = await getOwnerProfile();
       const excludeSites = profile.excludeSites || [];
       if (excludeSites.includes(domain)) {
-        setMessage(`${domain} is already in your excluded sites.`);
+        showToast(`${domain} is already in your excluded sites.`);
         return;
       }
       await saveOwnerProfile({ excludeSites: [...excludeSites, domain] });
-      setMessage(`${domain} added to excluded sites — future searches won't surface it again.`);
+      showToast(`${domain} added to excluded sites — future searches won't surface it again.`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update excluded sites. Please try again.');
+      showToast(err.response?.data?.error || 'Failed to update excluded sites. Please try again.', 'error');
     } finally {
       setExcludingId(null);
     }
@@ -102,16 +125,15 @@ export default function LeadReviewDetail({ queryId }) {
 
   const handleScrapeSelected = async () => {
     setScraping(true);
-    setError('');
     try {
       const { count } = await scrapeQueryResults([...selectedIds]);
-      setMessage(`Scraping ${count} URL${count === 1 ? '' : 's'}…`);
+      showToast(`Scraping ${count} URL${count === 1 ? '' : 's'}…`);
       setSelectedIds(new Set());
     } catch (err) {
       // Same caveat as QueryManager's runQuery — the backend dispatches to n8n
       // fire-and-forget, so this only catches request-level failures. A failure inside
       // the scrape itself is flagged per-result later via scrape-complete's sentinel check.
-      setError(err.response?.data?.error || 'Failed to start scraping. Please try again.');
+      showToast(err.response?.data?.error || 'Failed to start scraping. Please try again.', 'error');
     } finally {
       setScraping(false);
     }
@@ -131,18 +153,6 @@ export default function LeadReviewDetail({ queryId }) {
       <p className="text-slate-500 mt-1 text-sm">
         {queryInfo?.ranAt ? `Searched ${new Date(queryInfo.ranAt).toLocaleString()}` : 'Reviewing leads for this query.'}
       </p>
-
-      {message && (
-        <div className="mt-4 px-3 py-2 bg-green-50 text-green-700 text-sm rounded-md">
-          {message}
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-4 px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-sm rounded-md">
-          {error}
-        </div>
-      )}
 
       <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-slate-100 rounded-md">
         <span className="text-sm text-slate-600">
@@ -176,7 +186,16 @@ export default function LeadReviewDetail({ queryId }) {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-4 font-medium w-8"></th>
+                <th className="py-2 pr-4 font-medium w-8">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    checked={allSelected}
+                    disabled={selectableRows.length === 0}
+                    onChange={toggleSelectAll}
+                    aria-label="Select all on this page"
+                  />
+                </th>
                 <th className="py-2 pr-4 font-medium">Business Name</th>
                 <th className="py-2 pr-4 font-medium">URL</th>
                 <th className="py-2 pr-4 font-medium">Date Found</th>
@@ -281,6 +300,8 @@ export default function LeadReviewDetail({ queryId }) {
           )}
         </div>
       )}
+
+      <Toast toast={toast} />
     </div>
   );
 }

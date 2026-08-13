@@ -53,7 +53,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave blank or null if not present):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If {{ $json.sucess }} = false, then for every values of attributes in output json put, {{ $json.code }}.\n\n",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave blank or null if not present):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array or nested object), even for multi-item fields like services or awards.\n3. The fields (name, specialisation, location, phone, email, yearsExperience, services, awards) must be top-level keys in the JSON object itself — do not nest them under \"output\" or any other wrapper key.\n\n",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -67,7 +67,8 @@
       ],
       "id": "69009d5d-3ec0-402d-b03e-4989d777a6f5",
       "name": "AI Extract Business Data",
-      "retryOnFail": true
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -84,7 +85,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const extracted = $input.first().json.output;\nconst sourceRow = $('Split the body into separate Items').item.json;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
+        "jsCode": "const input = $input.first().json;\nconst sourceRow = $('Split the body into separate Items').item.json;\n\nif (input.error) {\n  return [{\n    json: {\n      queryResultId: sourceRow.id,\n      name: 'SCRAPE_EXTRACTION_ERROR',\n      specialisation: 'SCRAPE_EXTRACTION_ERROR',\n      location: 'SCRAPE_EXTRACTION_ERROR',\n      phone: 'SCRAPE_EXTRACTION_ERROR',\n      email: 'SCRAPE_EXTRACTION_ERROR',\n      yearsExperience: 'SCRAPE_EXTRACTION_ERROR',\n      services: 'SCRAPE_EXTRACTION_ERROR',\n      awards: 'SCRAPE_EXTRACTION_ERROR'\n    }\n  }];\n}\n\nconst extracted = input.output;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
