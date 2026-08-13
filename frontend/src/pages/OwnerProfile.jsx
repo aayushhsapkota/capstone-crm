@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
+import { getOwnerProfile, saveOwnerProfile, scrapeOwnerProfileFromWebsite } from '../api/ownerProfile.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
 
 let rowKey = 0;
@@ -17,6 +17,9 @@ export default function OwnerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [fetchUrl, setFetchUrl] = useState('');
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +70,29 @@ export default function OwnerProfile() {
     setExcludeSites((prev) => prev.filter((s) => s !== site));
   };
 
+  const handleFetchFromWebsite = async () => {
+    if (!fetchUrl.trim()) return;
+    setFetching(true);
+    setFetchError('');
+    try {
+      const draft = await scrapeOwnerProfileFromWebsite(fetchUrl.trim());
+      // Pre-fills the form only — still requires clicking Save below, same as
+      // reviewing an email draft before Send. LLM extraction can be wrong.
+      setForm((prev) => ({
+        ...prev,
+        companyName: draft.companyName || prev.companyName,
+        specialisation: draft.specialisation || prev.specialisation,
+      }));
+      if (draft.services?.length) {
+        setServiceRows(draft.services.map(toServiceRow));
+      }
+    } catch (err) {
+      setFetchError(err.response?.data?.error || 'Failed to fetch company info. Please try again.');
+    } finally {
+      setFetching(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -100,6 +126,35 @@ export default function OwnerProfile() {
     <div className="max-w-3xl">
       <h1 className="text-2xl font-semibold text-slate-800">Owner Profile</h1>
       <p className="text-slate-500 mt-1">Company info, services, and email signature.</p>
+
+      <div className="mt-6 p-4 border border-slate-200 rounded-lg bg-slate-50">
+        <h3 className="text-sm font-semibold text-slate-700">✦ Fetch from website</h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Have a company website? We'll pull in the name, specialisation, and services to
+          save you typing them out — review and edit before saving.
+        </p>
+        {fetchError && (
+          <div className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {fetchError}
+          </div>
+        )}
+        <div className="mt-3 flex gap-2 max-w-xl">
+          <input
+            type="text"
+            value={fetchUrl}
+            onChange={(e) => setFetchUrl(e.target.value)}
+            placeholder="https://yourcompany.com"
+            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
+          />
+          <button
+            onClick={handleFetchFromWebsite}
+            disabled={fetching || !fetchUrl.trim()}
+            className="px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-white disabled:opacity-50"
+          >
+            {fetching ? 'Fetching…' : '✦ Fetch'}
+          </button>
+        </div>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>

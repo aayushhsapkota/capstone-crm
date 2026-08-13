@@ -1,0 +1,200 @@
+{
+  "name": "Owner Profile Scrape",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "owner-profile-scrape",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-768, 0],
+      "id": "webhook-owner-profile-scrape-0001",
+      "name": "Webhook",
+      "webhookId": "owner-profile-scrape"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.websiteUrl }}\",\n  \"formats\": [\n    \"markdown\"\n  ],\n  \"onlyMainContent\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-512, 0],
+      "id": "scrape-from-firecrawl-owner-0001",
+      "name": "scrape from firecrawl",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eWufcyvisZkqmLkT",
+          "name": "firecrawl api"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "has-firecrawl-error-owner-cond-0001",
+              "leftValue": "={{ $json.error ? true : false }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-256, 0],
+      "id": "has-firecrawl-error-owner-if-0001",
+      "name": "Has Firecrawl Error?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    error: $json.error?.message || 'Scrape failed'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-256, 224],
+      "id": "build-firecrawl-error-owner-0001",
+      "name": "Build Firecrawl Error Result"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured company information for the business that owns this website (this is the SENDER's own company profile, not a lead).\n\nFields to extract (leave blank/null or empty array if not present — never invent information):\n- companyName (the company's name)\n- specialisation (a short description of what industry/field this company operates in, e.g. \"Dental Clinic\", \"NDIS & Aged Care Staffing\", \"IT Support\")\n- services: an array of up to 6 objects {service, description}, each a core service or offering this company provides, with a short one-sentence description. Only include services explicitly mentioned in the text.\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If nothing relevant is found for a field, leave it blank/null (or an empty array for services) rather than guessing.",
+        "hasOutputParser": true,
+        "messages": { "messageValues": [] }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [0, -128],
+      "id": "ai-extract-owner-profile-0001",
+      "name": "AI Extract Owner Profile",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-32, 96],
+      "id": "gemini-model-owner-profile-0001",
+      "name": "Gemini Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"companyName\": \"Acme Dental Group\",\n  \"specialisation\": \"Dental Clinic\",\n  \"services\": [\n    { \"service\": \"Teeth Whitening\", \"description\": \"Professional in-chair whitening treatments\" },\n    { \"service\": \"Root Canal\", \"description\": \"Pain-free root canal therapy\" }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [128, 96],
+      "id": "structured-output-parser-owner-0001",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "has-gen-error-owner-cond-0001",
+              "leftValue": "={{ $json.error ? true : false }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [256, -128],
+      "id": "has-gen-error-owner-if-0001",
+      "name": "Has Generation Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.error } }}",
+        "options": { "responseCode": 500 }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [512, 0],
+      "id": "respond-with-error-owner-0001",
+      "name": "Respond With Error"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [512, -256],
+      "id": "respond-with-profile-draft-0001",
+      "name": "Respond With Profile Draft"
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "scrape from firecrawl", "type": "main", "index": 0 }]] },
+    "scrape from firecrawl": {
+      "main": [
+        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }],
+        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Firecrawl Error?": {
+      "main": [
+        [{ "node": "Build Firecrawl Error Result", "type": "main", "index": 0 }],
+        [{ "node": "AI Extract Owner Profile", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Firecrawl Error Result": { "main": [[{ "node": "Respond With Error", "type": "main", "index": 0 }]] },
+    "Gemini Model": { "ai_languageModel": [[{ "node": "AI Extract Owner Profile", "type": "ai_languageModel", "index": 0 }]] },
+    "Structured Output Parser": { "ai_outputParser": [[{ "node": "AI Extract Owner Profile", "type": "ai_outputParser", "index": 0 }]] },
+    "AI Extract Owner Profile": { "main": [[{ "node": "Has Generation Error?", "type": "main", "index": 0 }]] },
+    "Has Generation Error?": {
+      "main": [
+        [{ "node": "Respond With Error", "type": "main", "index": 0 }],
+        [{ "node": "Respond With Profile Draft", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b3f1a001-owner-profile-scrape-v1",
+  "meta": {
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "OwnerProfileScrapeWF001",
+  "tags": []
+}

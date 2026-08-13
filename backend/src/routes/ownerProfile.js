@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
+import { callN8n } from '../lib/n8n.js';
 
 const router = Router();
 
@@ -34,6 +35,29 @@ router.get('/', async (req, res, next) => {
     }
     res.json(profile);
   } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/owner-profile/scrape — extract companyName/specialisation/services from a
+// website via Firecrawl + Gemini. Returns a draft for the caller to review/edit — never
+// writes to the profile directly, since LLM extraction can be wrong and this is
+// foundational data (same reasoning as why email drafts require an explicit Send).
+router.post('/scrape', async (req, res, next) => {
+  try {
+    const { websiteUrl } = req.body;
+    const draft = await callN8n(process.env.N8N_WEBHOOK_OWNER_PROFILE_SCRAPE, { websiteUrl });
+
+    if (draft?.error) {
+      return res.status(502).json({ error: draft.error });
+    }
+
+    res.json(draft); // { companyName, specialisation, services }
+  } catch (err) {
+    const n8nError = err.response?.data?.error;
+    if (n8nError) {
+      return res.status(502).json({ error: n8nError });
+    }
     next(err);
   }
 });
