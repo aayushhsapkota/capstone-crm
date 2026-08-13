@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
+import { deleteUploadedFileIfLocal } from '../lib/uploads.js';
 
 const router = Router();
 
@@ -26,6 +27,15 @@ router.post('/', async (req, res, next) => {
 // PATCH /api/offers/:id
 router.patch('/:id', async (req, res, next) => {
   try {
+    const existing = await prisma.offer.findUniqueOrThrow({ where: { id: req.params.id } });
+
+    // Replacing an image swaps in a brand new uploaded file rather than overwriting
+    // the old one on disk — clean up the file it's replacing so uploads don't
+    // accumulate forever in backend/uploads/.
+    if (req.body.imageUrl !== undefined && req.body.imageUrl !== existing.imageUrl) {
+      await deleteUploadedFileIfLocal(existing.imageUrl);
+    }
+
     const offer = await prisma.offer.update({
       where: { id: req.params.id },
       data: req.body,
@@ -45,7 +55,8 @@ router.delete('/:id', async (req, res, next) => {
     if (usedInEmail) {
       return res.status(409).json({ error: 'Offer is linked to sent emails and cannot be deleted.' });
     }
-    await prisma.offer.delete({ where: { id: req.params.id } });
+    const offer = await prisma.offer.delete({ where: { id: req.params.id } });
+    await deleteUploadedFileIfLocal(offer.imageUrl);
     res.status(204).end();
   } catch (err) {
     next(err);

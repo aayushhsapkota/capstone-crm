@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { callN8n } from '../lib/n8n.js';
+import { deleteUploadedFileIfLocal } from '../lib/uploads.js';
 
 const router = Router();
 
@@ -61,6 +62,16 @@ router.put('/', async (req, res, next) => {
     let profile;
 
     if (existing) {
+      // Replacing an image (via ImageUrlField's "Replace") swaps in a brand new
+      // uploaded file rather than overwriting the old one on disk — clean up the file
+      // it's replacing so uploads don't accumulate forever in backend/uploads/.
+      if (req.body.logoUrl !== undefined && req.body.logoUrl !== existing.logoUrl) {
+        await deleteUploadedFileIfLocal(existing.logoUrl);
+      }
+      if (req.body.heroImageUrl !== undefined && req.body.heroImageUrl !== existing.heroImageUrl) {
+        await deleteUploadedFileIfLocal(existing.heroImageUrl);
+      }
+
       profile = await prisma.ownerProfile.update({
         where: { id: existing.id },
         data: req.body,
