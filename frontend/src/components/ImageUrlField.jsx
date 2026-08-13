@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { uploadImage } from '../api/uploads.js';
 
 // Must match the backend's multer limits.fileSize (backend/src/routes/uploads.js) and
@@ -9,11 +9,33 @@ import { uploadImage } from '../api/uploads.js';
 // inspect. Catching it before the request ever goes out sidesteps that entirely.
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
-export default function ImageUrlField({ label, value, onChange, placeholder }) {
+// Picking a file no longer uploads it right away — it's held locally (with a preview
+// via a local blob URL) until the parent form calls commitPendingUpload() via ref,
+// which the parent does at Save time. This avoids orphaned files on disk from picking
+// an image and then never saving the form.
+const ImageUrlField = forwardRef(function ImageUrlField({ label, value, onChange, placeholder }, ref) {
+  const [pendingFile, setPendingFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const objectUrlRef = useRef(null);
 
-  const handleFileChange = async (e) => {
+  const clearPendingPreview = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    setPreviewUrl('');
+    setPendingFile(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
+
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -23,49 +45,51 @@ export default function ImageUrlField({ label, value, onChange, placeholder }) {
       return;
     }
 
-    setUploading(true);
     setError('');
-    try {
-      const url = await uploadImage(file);
-      onChange(url);
-    } catch (err) {
-      // A 413 from a reverse proxy (nginx, etc.) arrives as an HTML error page, not
-      // JSON — err.response.data.error won't exist even though the cause (file too
-      // large) is knowable from the status code alone. Kept as a backstop in case the
-      // client-side check above ever drifts from the server's actual configured limit.
-      if (err.response?.status === 413) {
-        setError('Image is too large for the server to accept.');
-      } else {
-        setError(err.response?.data?.error || 'Upload failed.');
-      }
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const localUrl = URL.createObjectURL(file);
+    objectUrlRef.current = localUrl;
+    setPreviewUrl(localUrl);
+    setPendingFile(file);
+    e.target.value = '';
   };
+
+  useImperativeHandle(ref, () => ({
+    // Called by the parent form at Save time. Returns the URL to persist — either the
+    // freshly uploaded one, or the existing `value` unchanged if nothing is pending.
+    async commitPendingUpload() {
+      if (!pendingFile) return value;
+      setUploading(true);
+      setError('');
+      try {
+        const url = await uploadImage(pendingFile);
+        clearPendingPreview();
+        onChange(url);
+        return url;
+      } catch (err) {
+        setError(err.response?.data?.error || 'Upload failed.');
+        throw err;
+      } finally {
+        setUploading(false);
+      }
+    },
+    hasPendingUpload() {
+      return !!pendingFile;
+    },
+  }));
+
+  const displayValue = previewUrl || value;
+  const hasImage = !!displayValue;
 
   return (
     <div>
       <label className="block text-xs text-slate-500 mb-1">{label}</label>
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
-        />
-        <label className="px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-slate-50 cursor-pointer whitespace-nowrap">
-          {uploading ? 'Uploading…' : 'Upload'}
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-        </label>
-      </div>
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-      {value && (
+
+      {hasImage && (
         <img
-          src={value}
+          src={displayValue}
           alt=""
-          className="mt-2 h-16 rounded border border-slate-200 object-cover"
+          className="h-20 w-20 object-cover rounded-lg border border-slate-200 mb-2"
           onError={(e) => {
             e.target.style.display = 'none';
           }}
@@ -74,6 +98,31 @@ export default function ImageUrlField({ label, value, onChange, placeholder }) {
           }}
         />
       )}
+
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            // Typing a URL directly cancels any pending file selection — the two are
+            // mutually exclusive ways of setting this field.
+            if (pendingFile) clearPendingPreview();
+            onChange(e.target.value);
+          }}
+          placeholder={placeholder}
+          className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
+        />
+        <label className="px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-slate-50 cursor-pointer whitespace-nowrap">
+          {uploading ? 'Uploading…' : hasImage ? 'Replace' : 'Upload'}
+          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+        </label>
+      </div>
+      {pendingFile && !uploading && (
+        <p className="text-xs text-slate-500 mt-1">Selected — will upload when you click Save.</p>
+      )}
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );
-}
+});
+
+export default ImageUrlField;

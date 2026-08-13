@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getOffers, createOffer, updateOffer, deleteOffer } from '../api/offers.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
 
@@ -20,6 +20,7 @@ export default function Offers() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const imageFieldRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +68,10 @@ export default function Offers() {
     setSaving(true);
     setError('');
     try {
+      // Any picked-but-not-yet-uploaded image gets uploaded now, right before the
+      // offer itself is saved — not when the file was originally picked.
+      const imageUrl = (await imageFieldRef.current?.commitPendingUpload()) ?? form.imageUrl;
+
       const payload = {
         name: form.name.trim(),
         headline: form.headline.trim(),
@@ -74,7 +79,7 @@ export default function Offers() {
         durationLabel: form.durationLabel.trim() || null,
         ctaText: form.ctaText.trim() || null,
         bodyNotes: form.bodyNotes.trim() || null,
-        imageUrl: form.imageUrl.trim() || null,
+        imageUrl: imageUrl?.trim() || null,
       };
 
       if (editingId) {
@@ -85,6 +90,8 @@ export default function Offers() {
 
       closeForm();
       await load();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save offer. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -174,6 +181,7 @@ export default function Offers() {
             </div>
             <div>
               <ImageUrlField
+                ref={imageFieldRef}
                 label="Header Image"
                 value={form.imageUrl}
                 onChange={(url) => handleFieldChange('imageUrl', url)}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getOwnerProfile, saveOwnerProfile, scrapeOwnerProfileFromWebsite } from '../api/ownerProfile.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
 
@@ -20,6 +20,9 @@ export default function OwnerProfile() {
   const [fetchUrl, setFetchUrl] = useState('');
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const logoFieldRef = useRef(null);
+  const heroFieldRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,7 +98,15 @@ export default function OwnerProfile() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError('');
     try {
+      // Any picked-but-not-yet-uploaded image gets uploaded now, right before the
+      // profile itself is saved — not when the file was originally picked.
+      const [logoUrl, heroImageUrl] = await Promise.all([
+        logoFieldRef.current?.commitPendingUpload() ?? form.logoUrl,
+        heroFieldRef.current?.commitPendingUpload() ?? form.heroImageUrl,
+      ]);
+
       const services = serviceRows
         .map((r) => ({ service: r.service.trim(), description: r.description.trim() }))
         .filter((s) => s.service);
@@ -105,14 +116,16 @@ export default function OwnerProfile() {
         senderEmail: form.senderEmail,
         specialisation: form.specialisation || null,
         signatureHtml: form.signatureHtml || null,
-        logoUrl: form.logoUrl || null,
-        heroImageUrl: form.heroImageUrl || null,
+        logoUrl: logoUrl || null,
+        heroImageUrl: heroImageUrl || null,
         services,
         excludeSites,
       });
-      setForm((prev) => ({ ...prev, id: updated.id }));
+      setForm((prev) => ({ ...prev, id: updated.id, logoUrl: logoUrl || '', heroImageUrl: heroImageUrl || '' }));
       setMessage('Saved.');
       setTimeout(() => setMessage(''), 2000);
+    } catch (err) {
+      setSaveError(err.response?.data?.error || 'Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -195,6 +208,7 @@ export default function OwnerProfile() {
         </div>
         <div className="col-span-2">
           <ImageUrlField
+            ref={logoFieldRef}
             label="Logo"
             value={form.logoUrl}
             onChange={(url) => handleFieldChange('logoUrl', url)}
@@ -203,6 +217,7 @@ export default function OwnerProfile() {
         </div>
         <div className="col-span-2">
           <ImageUrlField
+            ref={heroFieldRef}
             label="Intro Email Header Image"
             value={form.heroImageUrl}
             onChange={(url) => handleFieldChange('heroImageUrl', url)}
@@ -332,6 +347,12 @@ export default function OwnerProfile() {
           </div>
         </div>
       </div>
+
+      {saveError && (
+        <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {saveError}
+        </div>
+      )}
 
       <div className="mt-8 flex items-center gap-3">
         <button
