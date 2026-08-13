@@ -40,7 +40,7 @@ export default function LeadReviewIndex() {
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium">Query</th>
-                <th className="py-2 pr-4 font-medium">Scraped</th>
+                <th className="py-2 pr-4 font-medium">Searched</th>
                 <th className="py-2 pr-4 font-medium">Leads to review</th>
               </tr>
             </thead>

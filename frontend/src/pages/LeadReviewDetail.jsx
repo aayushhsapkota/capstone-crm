@@ -129,7 +129,7 @@ export default function LeadReviewDetail({ queryId }) {
         {queryInfo?.text || 'Query leads'}
       </h1>
       <p className="text-slate-500 mt-1 text-sm">
-        {queryInfo?.ranAt ? `Scraped ${new Date(queryInfo.ranAt).toLocaleString()}` : 'Reviewing leads for this query.'}
+        {queryInfo?.ranAt ? `Searched ${new Date(queryInfo.ranAt).toLocaleString()}` : 'Reviewing leads for this query.'}
       </p>
 
       {message && (
@@ -256,7 +256,7 @@ export default function LeadReviewDetail({ queryId }) {
       {!loading && total > 0 && (
         <div className="mt-4 flex items-center justify-between">
           <p className="text-xs text-slate-400">
-            {total} {showFlagged ? 'lead' : 'selectable for scraping'}{total === 1 ? '' : 's'}
+            {total} {showFlagged ? `lead${total === 1 ? '' : 's'}` : 'selectable for scraping'}
           </p>
           {totalPages > 1 && (
             <div className="flex items-center gap-2 text-xs">
