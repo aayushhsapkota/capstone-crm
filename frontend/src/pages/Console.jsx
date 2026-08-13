@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getBusinesses, getBusiness, updateBusiness } from '../api/businesses.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import ThreadView from '../components/ThreadView.jsx';
@@ -18,6 +18,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function Console() {
+  const [searchParams] = useSearchParams();
   const [businesses, setBusinesses] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -47,6 +48,13 @@ export default function Console() {
   useEffect(() => {
     if (selectedId) loadBusinessDetail(selectedId);
   }, [selectedId, loadBusinessDetail]);
+
+  // Lets the notification bell (and any other deep link) jump straight to a
+  // conversation via /console?businessId=..., mirroring LeadReview's ?queryId=.
+  useEffect(() => {
+    const businessId = searchParams.get('businessId');
+    if (businessId) setSelectedId(businessId);
+  }, [searchParams]);
 
   const toggleChecked = (id) => {
     setCheckedIds((prev) => {
