@@ -109,7 +109,7 @@ model QueryResult {
   id           String    @id @default(uuid())
   queryId      String
   query        Query     @relation(fields: [queryId], references: [id])
-  url          String
+  url          String    @unique // Global — the same business url found via a different search is still a duplicate
   businessName String?
   flagged      Boolean   @default(false)  // true = directory or irrelevant
   flagReason   String?

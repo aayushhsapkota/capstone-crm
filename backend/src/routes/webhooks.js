@@ -18,8 +18,14 @@ router.post('/query-results', async (req, res, next) => {
   try {
     const { queryId, results, error } = req.body;
 
+    // insertedCount, not results.length: QueryResult.url is globally unique (the same
+    // business url found by an earlier, different search is still a duplicate), so
+    // skipDuplicates can silently drop some of these rows. createMany's return value is
+    // the only place that knows how many actually landed — n8n has no DB visibility to
+    // compute this itself, it only ever sees Firecrawl's raw results.
+    let insertedCount = 0;
     if (results?.length) {
-      await prisma.queryResult.createMany({
+      const created = await prisma.queryResult.createMany({
         data: results.map((r) => ({
           queryId,
           url: r.url,
@@ -27,6 +33,7 @@ router.post('/query-results', async (req, res, next) => {
         })),
         skipDuplicates: true,
       });
+      insertedCount = created.count;
     }
 
     // Query Search sends an explicit `error` field on failure (its Firecrawl node has
@@ -35,7 +42,7 @@ router.post('/query-results', async (req, res, next) => {
     if (error) {
       await prisma.query.update({
         where: { id: queryId },
-        data: { status: 'FAILED', resultsCount: results?.length || 0 },
+        data: { status: 'FAILED', resultsCount: insertedCount },
       });
       await prisma.notification.create({
         data: {
@@ -46,7 +53,7 @@ router.post('/query-results', async (req, res, next) => {
     } else {
       await prisma.query.update({
         where: { id: queryId },
-        data: { status: 'COMPLETE', resultsCount: results?.length || 0 },
+        data: { status: 'COMPLETE', resultsCount: insertedCount },
       });
     }
 
