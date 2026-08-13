@@ -258,8 +258,9 @@ export default function OwnerProfile() {
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-slate-700">Excluded Sites</h3>
         <p className="text-xs text-slate-500 mt-1">
-          Domains to exclude from every search query (e.g. directory sites). These are
-          specific to your industry — edit the list if you switch to a different one.
+          Domains to exclude from every search query (e.g. directory sites). Add any
+          industry-specific directories that clutter your results — these aren't
+          assumed for you.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {excludeSites.length === 0 ? (
