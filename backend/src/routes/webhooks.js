@@ -93,6 +93,7 @@ router.post('/scrape-complete', async (req, res, next) => {
           location: r.location || null,
           email: r.email || null,
           phone: r.phone || null,
+          website: r.url || null,
           services: r.services || null,
           awards: r.awards || null,
           yearsExperience: r.yearsExperience || null,

@@ -84,7 +84,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const extracted = $input.first().json.output;\nconst queryResultId = $('Split the body into separate Items').item.json.id;\nreturn [{\n  json: {\n    queryResultId,\n    ...extracted\n  }\n}];"
+        "jsCode": "const extracted = $input.first().json.output;\nconst sourceRow = $('Split the body into separate Items').item.json;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
