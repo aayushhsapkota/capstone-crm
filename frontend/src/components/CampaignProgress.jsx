@@ -1,9 +1,13 @@
+import LoadingSpinner from './LoadingSpinner.jsx';
+
 const STATUS_STYLES = {
   QUEUED: 'bg-slate-100 text-slate-600',
   RUNNING: 'bg-amber-100 text-amber-700',
   COMPLETE: 'bg-green-100 text-green-700',
   PARTIAL_FAIL: 'bg-red-100 text-red-700',
 };
+
+const IN_PROGRESS_STATUSES = new Set(['QUEUED', 'RUNNING']);
 
 export default function CampaignProgress({ campaign }) {
   const { totalCount, sentCount, failedCount, skippedCount, status } = campaign;
@@ -16,7 +20,8 @@ export default function CampaignProgress({ campaign }) {
         <span>
           {processed} / {totalCount} processed
         </span>
-        <span className={`px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[status] ?? 'bg-slate-100 text-slate-600'}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[status] ?? 'bg-slate-100 text-slate-600'}`}>
+          {IN_PROGRESS_STATUSES.has(status) && <LoadingSpinner />}
           {status.replace(/_/g, ' ')}
         </span>
       </div>

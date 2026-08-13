@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useCampaignProgress } from '../hooks/useCampaignProgress.js';
 import CampaignProgress from '../components/CampaignProgress.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const JOB_STATUS_STYLES = {
   PENDING: 'bg-slate-100 text-slate-600',
@@ -64,8 +65,12 @@ export default function CampaignDetail() {
                 <td className="py-2 pr-4 text-slate-500">{job.business.email || '—'}</td>
                 <td className="py-2 pr-4">
                   <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${JOB_STATUS_STYLES[job.status] ?? 'bg-slate-100 text-slate-600'}`}
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${JOB_STATUS_STYLES[job.status] ?? 'bg-slate-100 text-slate-600'}`}
                   >
+                    {/* Only spin while the campaign itself is actively running — a
+                        PENDING job on a finished/stuck campaign isn't really "in
+                        progress" even though it never got processed. */}
+                    {job.status === 'PENDING' && campaign.status === 'RUNNING' && <LoadingSpinner />}
                     {job.status}
                   </span>
                 </td>

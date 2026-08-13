@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQueries, runQuery } from '../api/queries.js';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const STATUS_STYLES = {
   PENDING: 'bg-slate-100 text-slate-600',
@@ -8,6 +9,8 @@ const STATUS_STYLES = {
   COMPLETE: 'bg-green-100 text-green-700',
   FAILED: 'bg-red-100 text-red-700',
 };
+
+const IN_PROGRESS_STATUSES = new Set(['PENDING', 'RUNNING']);
 
 export default function QueryManager() {
   const [text, setText] = useState('');
@@ -154,8 +157,9 @@ export default function QueryManager() {
                   <td className="py-2 pr-4 text-slate-500">{q.resultsCount}</td>
                   <td className="py-2 pr-4">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[q.status] ?? 'bg-slate-100 text-slate-600'}`}
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[q.status] ?? 'bg-slate-100 text-slate-600'}`}
                     >
+                      {IN_PROGRESS_STATUSES.has(q.status) && <LoadingSpinner />}
                       {q.status}
                     </span>
                   </td>
