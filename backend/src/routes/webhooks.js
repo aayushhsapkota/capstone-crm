@@ -69,11 +69,17 @@ router.post('/query-results', async (req, res, next) => {
 // as data rather than a top-level `error` field like /query-results uses.
 const SCRAPE_ERROR_PATTERN = /^SCRAPE_.*_ERROR$/;
 
-// POST /api/webhooks/scrape-complete — n8n calls after scraping + Gemini extraction
+// POST /api/webhooks/scrape-complete — n8n calls after scraping + Gemini extraction.
+// n8n's "Aggregate Results" node collects every item from the whole batch into one
+// array before calling this — so a single call here already represents "this entire
+// scrape batch has finished", not just one business. That's what makes a single
+// summary notification possible without any extra batch-tracking.
 router.post('/scrape-complete', async (req, res, next) => {
   if (!validateSecret(req, res)) return;
   try {
     const { results } = req.body;
+
+    let failedCount = 0;
 
     for (const r of results) {
       // Flag instead of creating a business — trusts the sentinel over blindly
@@ -83,6 +89,7 @@ router.post('/scrape-complete', async (req, res, next) => {
           where: { id: r.queryResultId },
           data: { flagged: true, flagReason: r.name },
         });
+        failedCount++;
         continue;
       }
 
@@ -105,13 +112,25 @@ router.post('/scrape-complete', async (req, res, next) => {
         where: { id: r.queryResultId },
         data: { businessId: business.id, scrapedAt: new Date() },
       });
+    }
+
+    // One notification for the whole batch, not one per business — the frontend's own
+    // polling (LeadReviewDetail) already gives real-time feedback while you're still on
+    // the page; this is what lets you find out it finished even after navigating away,
+    // via the bell instead of a page-scoped toast that can't survive navigation.
+    if (results.length > 0) {
+      const firstQueryResult = await prisma.queryResult.findUnique({
+        where: { id: results[0].queryResultId },
+        include: { query: { select: { text: true } } },
+      });
+      const queryText = firstQueryResult?.query?.text || 'your search';
+      const message =
+        failedCount === 0
+          ? `Scraping completed for "${queryText}" successfully.`
+          : `Scraping completed for "${queryText}" with ${failedCount} failed lead${failedCount === 1 ? '' : 's'}.`;
 
       await prisma.notification.create({
-        data: {
-          type: 'SCRAPE_COMPLETE',
-          businessId: business.id,
-          message: `${business.name} scraped and added.`,
-        },
+        data: { type: 'SCRAPE_COMPLETE', message },
       });
     }
 

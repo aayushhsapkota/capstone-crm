@@ -15,6 +15,15 @@ export async function scrapeQueryResults(ids) {
   return data;
 }
 
+// Polled by the frontend after submitting a scrape batch, to detect when each
+// submitted lead has resolved (scraped into a Business, or flagged as a failure).
+export async function getQueryResultsStatus(ids) {
+  const { data } = await client.get('/query-results/status', {
+    params: { ids: ids.join(',') },
+  });
+  return data;
+}
+
 export async function flagQueryResult(id, flagReason) {
   const { data } = await client.patch(`/query-results/${id}/flag`, {
     flagged: true,

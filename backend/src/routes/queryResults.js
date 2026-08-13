@@ -67,6 +67,33 @@ router.post('/scrape', async (req, res, next) => {
   }
 });
 
+// GET /api/query-results/status?ids=id1,id2,id3
+// Lets the frontend poll a specific batch it just submitted for scraping (via
+// POST /scrape) to see which ones have resolved — scrapedAt set means it became a
+// Business, flagged means scrape-complete's SCRAPE_*_ERROR sentinel caught a failure
+// for it. Anything not yet in either state is still in flight. This is deliberately
+// separate from the main GET / list above, which is paginated/filtered for browsing —
+// polling a fixed set of known IDs needs all of them back every time, unfiltered.
+router.get('/status', async (req, res, next) => {
+  try {
+    const ids = (req.query.ids || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+    if (ids.length === 0) {
+      return res.json([]);
+    }
+
+    const rows = await prisma.queryResult.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, scrapedAt: true, flagged: true, flagReason: true },
+    });
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PATCH /api/query-results/:id/flag
 router.patch('/:id/flag', async (req, res, next) => {
   try {

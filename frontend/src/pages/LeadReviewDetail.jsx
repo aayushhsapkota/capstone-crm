@@ -1,12 +1,38 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { getQueryResults, scrapeQueryResults, flagQueryResult, unflagQueryResult } from '../api/queryResults.js';
+import {
+  getQueryResults,
+  scrapeQueryResults,
+  flagQueryResult,
+  unflagQueryResult,
+  getQueryResultsStatus,
+} from '../api/queryResults.js';
 import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
 import { useToast } from '../hooks/useToast.js';
 import Toast from '../components/Toast.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const FLAG_REASONS = ['Directory', 'Forum', 'Irrelevant', 'Duplicate', 'Other'];
 const PAGE_SIZE = 50;
+
+// These sentinel values come from the scrape workflow's own error handling
+// (website-scrape.json / webhooks.js's SCRAPE_ERROR_PATTERN), not from the FLAG_REASONS
+// dropdown a human picks from — a lead gets auto-flagged this way when scraping itself
+// failed, before there was ever a chance to review it. Shown with friendly labels
+// instead of the raw sentinel string so they read like the rest of the Flag column
+// rather than leaking an internal error code into the UI.
+const AUTO_FLAG_LABELS = {
+  SCRAPE_EXTRACTION_ERROR: 'Scrape Failed (AI extraction)',
+  SCRAPE_FIRECRAWL_REQUEST_ERROR: 'Scrape Failed (site unreachable)',
+};
+
+function formatFlagReason(flagReason) {
+  if (AUTO_FLAG_LABELS[flagReason]) return AUTO_FLAG_LABELS[flagReason];
+  // Generic fallback for any future SCRAPE_*_ERROR sentinel that isn't explicitly
+  // mapped above yet — still reads as "a scrape failure", not a raw error code.
+  if (/^SCRAPE_.*_ERROR$/.test(flagReason)) return 'Scrape Failed';
+  return flagReason;
+}
 
 function extractDomain(url) {
   try {
@@ -24,8 +50,10 @@ export default function LeadReviewDetail({ queryId }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
+  const [scrapingIds, setScrapingIds] = useState([]);
   const [excludingId, setExcludingId] = useState(null);
   const [toast, showToast] = useToast();
+  const scrapePollRef = useRef(null);
 
   const fetchResults = useCallback(
     async (targetPage = page) => {
@@ -45,6 +73,19 @@ export default function LeadReviewDetail({ queryId }) {
   useEffect(() => {
     fetchResults(1);
   }, [queryId, showFlagged]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The scrape-status poll interval below is created once per batch and can run for
+  // a while — it must always act on the *current* page/fetchResults, not whatever
+  // they were when the batch started, otherwise finishing a scrape after the user
+  // has since changed page or toggled "Show flagged" would refetch stale state.
+  const pageRef = useRef(page);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+  const fetchResultsRef = useRef(fetchResults);
+  useEffect(() => {
+    fetchResultsRef.current = fetchResults;
+  }, [fetchResults]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -123,12 +164,51 @@ export default function LeadReviewDetail({ queryId }) {
     }
   };
 
+  // A toast alone isn't enough for "scraping is happening" — it auto-dismisses in a
+  // few seconds while the actual scrape (Firecrawl + Gemini per lead, via n8n) can
+  // take much longer. This polls the exact batch of IDs just submitted until every one
+  // of them has resolved — either scraped into a Business, or flagged via
+  // scrape-complete's SCRAPE_*_ERROR sentinel — then reports one final toast with the
+  // real outcome and stops. The persistent banner (rendered below) is what stays
+  // visible for the whole wait; the toast is just the completion notice.
+  const pollScrapeStatus = useCallback(
+    (ids) => {
+      scrapePollRef.current = setInterval(async () => {
+        const rows = await getQueryResultsStatus(ids);
+        const stillPending = rows.some((r) => !r.scrapedAt && !r.flagged);
+        if (stillPending) return;
+
+        clearInterval(scrapePollRef.current);
+        scrapePollRef.current = null;
+
+        const failedCount = rows.filter((r) => r.flagged).length;
+        if (failedCount === 0) {
+          showToast('Scraping completed successfully.');
+        } else {
+          showToast(`Scraping completed with ${failedCount} failed lead${failedCount === 1 ? '' : 's'}.`, 'error');
+        }
+        setScrapingIds([]);
+        fetchResultsRef.current(pageRef.current);
+      }, 5000);
+    },
+    [showToast]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (scrapePollRef.current) clearInterval(scrapePollRef.current);
+    };
+  }, []);
+
   const handleScrapeSelected = async () => {
     setScraping(true);
     try {
-      const { count } = await scrapeQueryResults([...selectedIds]);
-      showToast(`Scraping ${count} URL${count === 1 ? '' : 's'}…`);
+      const ids = [...selectedIds];
+      const { count } = await scrapeQueryResults(ids);
+      setScrapingIds(ids);
       setSelectedIds(new Set());
+      pollScrapeStatus(ids);
+      showToast(`Scraping ${count} URL${count === 1 ? '' : 's'} started…`);
     } catch (err) {
       // Same caveat as QueryManager's runQuery — the backend dispatches to n8n
       // fire-and-forget, so this only catches request-level failures. A failure inside
@@ -154,26 +234,46 @@ export default function LeadReviewDetail({ queryId }) {
         {queryInfo?.ranAt ? `Searched ${new Date(queryInfo.ranAt).toLocaleString()}` : 'Reviewing leads for this query.'}
       </p>
 
-      <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-slate-100 rounded-md">
-        <span className="text-sm text-slate-600">
-          {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select leads to scrape'}
-        </span>
-        <button
-          onClick={handleScrapeSelected}
-          disabled={scraping || selectedIds.size === 0}
-          className="px-3 py-1.5 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700 disabled:opacity-50"
-        >
-          {scraping ? 'Scraping…' : 'Scrape Selected'}
-        </button>
-        <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showFlagged}
-            onChange={(e) => setShowFlagged(e.target.checked)}
-          />
-          Show flagged
-        </label>
-      </div>
+      {scrapingIds.length > 0 ? (
+        // Persistent for as long as the batch is unresolved — unlike the toast, this
+        // doesn't auto-dismiss, so it stays visible the whole time scraping is
+        // actually happening in the background instead of just flashing briefly.
+        <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+          <LoadingSpinner className="w-4 h-4 text-amber-600" />
+          <span className="text-sm text-amber-700">
+            Scraping {scrapingIds.length} lead{scrapingIds.length === 1 ? '' : 's'} in the background…
+          </span>
+          <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showFlagged}
+              onChange={(e) => setShowFlagged(e.target.checked)}
+            />
+            Show flagged
+          </label>
+        </div>
+      ) : (
+        <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-slate-100 rounded-md">
+          <span className="text-sm text-slate-600">
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select leads to scrape'}
+          </span>
+          <button
+            onClick={handleScrapeSelected}
+            disabled={scraping || selectedIds.size === 0}
+            className="px-3 py-1.5 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700 disabled:opacity-50"
+          >
+            {scraping ? 'Scraping…' : 'Scrape Selected'}
+          </button>
+          <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showFlagged}
+              onChange={(e) => setShowFlagged(e.target.checked)}
+            />
+            Show flagged
+          </label>
+        </div>
+      )}
 
       <div className="mt-6">
         {loading ? (
@@ -233,7 +333,7 @@ export default function LeadReviewDetail({ queryId }) {
                   <td className="py-2 pr-4">
                     {r.flagged ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">{r.flagReason}</span>
+                        <span className="text-xs text-slate-500">{formatFlagReason(r.flagReason)}</span>
                         <button
                           onClick={() => handleExcludeDomain(r.id, r.url)}
                           disabled={excludingId === r.id}
