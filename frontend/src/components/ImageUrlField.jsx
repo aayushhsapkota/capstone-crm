@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { uploadImage } from '../api/uploads.js';
 
+// Must match the backend's multer limits.fileSize (backend/src/routes/uploads.js) and
+// nginx's client_max_body_size on the host. Checked client-side because server-side
+// rejection of an oversized upload is inconsistent — nginx sometimes returns a clean
+// 413, but for larger overages it tears down the connection mid-upload instead
+// (net::ERR_CONNECTION_RESET), which axios reports with no `.response` at all to
+// inspect. Catching it before the request ever goes out sidesteps that entirely.
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
 export default function ImageUrlField({ label, value, onChange, placeholder }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -8,13 +16,28 @@ export default function ImageUrlField({ label, value, onChange, placeholder }) {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError(`Image must be under ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB (this file is ${(file.size / (1024 * 1024)).toFixed(1)}MB).`);
+      e.target.value = '';
+      return;
+    }
+
     setUploading(true);
     setError('');
     try {
       const url = await uploadImage(file);
       onChange(url);
     } catch (err) {
-      setError(err.response?.data?.error || 'Upload failed.');
+      // A 413 from a reverse proxy (nginx, etc.) arrives as an HTML error page, not
+      // JSON — err.response.data.error won't exist even though the cause (file too
+      // large) is knowable from the status code alone. Kept as a backstop in case the
+      // client-side check above ever drifts from the server's actual configured limit.
+      if (err.response?.status === 413) {
+        setError('Image is too large for the server to accept.');
+      } else {
+        setError(err.response?.data?.error || 'Upload failed.');
+      }
     } finally {
       setUploading(false);
       e.target.value = '';
