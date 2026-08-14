@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   getQueryResults,
   scrapeQueryResults,
@@ -45,10 +45,13 @@ function extractDomain(url) {
 }
 
 export default function LeadReviewDetail({ queryId }) {
+  const [searchParams] = useSearchParams();
   const [results, setResults] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [showFlagged, setShowFlagged] = useState(false);
+  // Lets the Lead Review index deep-link straight to the failed leads for a query
+  // (?showFlagged=true) instead of landing here and making you toggle it yourself.
+  const [showFlagged, setShowFlagged] = useState(searchParams.get('showFlagged') === 'true');
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);

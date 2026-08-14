@@ -66,6 +66,7 @@ async function computeQueryStats(queryIds) {
 
     statsByQuery[queryId] = {
       pendingLeadsCount: pendingByQuery[queryId] || 0,
+      failedLeadsCount: failedCount,
       scrapeStatus,
       lastScrapeActivityAt,
     };

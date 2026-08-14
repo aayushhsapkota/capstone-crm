@@ -35,22 +35,17 @@ export default function LeadReviewIndex() {
     prevBatchKeysRef.current = currentKeys;
   }, [batches, load]);
 
-  // Only searches with something still actionable — a query where every lead has
-  // already been scraped or flagged has nothing left to review, so it'd just be
-  // clutter here. QueryManager remains the place to browse full search history.
-  const needsReview = queries.filter((q) => q.pendingLeadsCount > 0);
-
   return (
     <div>
       <h1 className="text-2xl font-semibold text-slate-800">Lead Review</h1>
-      <p className="text-slate-500 mt-1">Searches with leads still waiting to be reviewed.</p>
+      <p className="text-slate-500 mt-1">All your searches and where their scrape stands.</p>
 
       <div className="mt-6">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading…</p>
-        ) : needsReview.length === 0 ? (
+        ) : queries.length === 0 ? (
           <p className="text-slate-400 text-sm">
-            Nothing to review right now — run a search in Query Manager to find new leads.
+            No searches yet — run one in Query Manager to find new leads.
           </p>
         ) : (
           <table className="w-full text-sm border-collapse">
@@ -59,10 +54,11 @@ export default function LeadReviewIndex() {
                 <th className="py-2 pr-4 font-medium">Query</th>
                 <th className="py-2 pr-4 font-medium">Scrape Status</th>
                 <th className="py-2 pr-4 font-medium">Leads to review</th>
+                <th className="py-2 pr-4 font-medium">Failed</th>
               </tr>
             </thead>
             <tbody>
-              {needsReview.map((q) => (
+              {queries.map((q) => (
                 <tr
                   key={q.id}
                   onClick={() => navigate(`/leads?queryId=${q.id}`)}
@@ -92,9 +88,30 @@ export default function LeadReviewIndex() {
                     </div>
                   </td>
                   <td className="py-2 pr-4">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                      {q.pendingLeadsCount}
-                    </span>
+                    {q.pendingLeadsCount > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                        {q.pendingLeadsCount}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {q.failedLeadsCount > 0 ? (
+                      <button
+                        onClick={(e) => {
+                          // Otherwise the row's own onClick would also fire and navigate
+                          // without the showFlagged param, undoing the deep link.
+                          e.stopPropagation();
+                          navigate(`/leads?queryId=${q.id}&showFlagged=true`);
+                        }}
+                        className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200"
+                      >
+                        {q.failedLeadsCount} failed — view
+                      </button>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
