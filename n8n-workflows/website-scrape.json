@@ -53,7 +53,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array, not an object, and never null — use \"\" instead), even for multi-item fields like services or awards.\n3. The fields (name, specialisation, location, phone, email, yearsExperience, services, awards) must be top-level keys in the JSON object itself — do not nest them under \"output\" or any other wrapper key.\n\n",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array, not an object, and never null — use \"\" instead), even for multi-item fields like services or awards.\n3. Return only JSON in this exact shape, with everything nested inside an output key:\n{\"output\": {\"name\": \"...\", \"specialisation\": \"...\", \"location\": \"...\", \"phone\": \"...\", \"email\": \"...\", \"yearsExperience\": \"...\", \"services\": \"...\", \"awards\": \"...\"}}\n",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -72,14 +72,13 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}",
-        "autoFix": true
+        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
         592,
-        976
+        960
       ],
       "id": "84e70f0b-31b6-4470-9490-d22e3f00768d",
       "name": "Structured Output Parser"
@@ -263,64 +262,64 @@
           "body": {
             "results": [
               {
-                "id": "34d1ac0e-ecd4-4337-888e-c70b1eaccce6",
-                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "id": "3ac356ed-fd68-48f2-a859-6358725157d2",
+                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
                 "url": "https://www.sydneyphysioclinic.com.au/?srsltid=AfmBOorkWm7AoAlNhX2f_PAVmY-0GGHzIti2s2h5yOylUwGPQSJyXa5a",
                 "businessName": "Sydney CBD Physio Clinic | Top-Rated Physiotherapy ...",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T02:24:43.789Z",
-                "updatedAt": "2026-08-14T02:24:43.789Z"
+                "createdAt": "2026-08-14T03:45:56.488Z",
+                "updatedAt": "2026-08-14T03:45:56.488Z"
               },
               {
-                "id": "daca2b07-7457-4d42-83f9-ec58bdab96e8",
-                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "id": "a49e7d8e-dbe5-48c2-b15f-f6c8341a4cfb",
+                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
                 "url": "https://www.sydneyphysio.com.au/",
                 "businessName": "Sydney Physiotherapy – Sydney CBD physio clinic",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T02:24:43.789Z",
-                "updatedAt": "2026-08-14T02:24:43.789Z"
+                "createdAt": "2026-08-14T03:45:56.488Z",
+                "updatedAt": "2026-08-14T03:45:56.488Z"
               },
               {
-                "id": "cb67f4e0-c879-4579-a0e2-82468f91c028",
-                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "id": "01ea76ce-00e5-4270-9ffc-99b1d956f45f",
+                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
                 "url": "https://www.instagram.com/sydneyphysioclinic/",
                 "businessName": "Sydney Physio Clinic (@sydneyphysioclinic)",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T02:24:43.789Z",
-                "updatedAt": "2026-08-14T02:24:43.789Z"
+                "createdAt": "2026-08-14T03:45:56.488Z",
+                "updatedAt": "2026-08-14T03:45:56.488Z"
               },
               {
-                "id": "3a3f7401-b38b-466d-9a8d-8b5af3290d5c",
-                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "id": "d8438628-d86a-4291-b0b2-661e03629189",
+                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
                 "url": "https://www.thesportsclinic.com.au/",
                 "businessName": "The Sports Clinic @ The University of Sydney | Sports ...",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T02:24:43.789Z",
-                "updatedAt": "2026-08-14T02:24:43.789Z"
+                "createdAt": "2026-08-14T03:45:56.488Z",
+                "updatedAt": "2026-08-14T03:45:56.488Z"
               },
               {
-                "id": "0c769f40-db84-4aff-b9f6-cf7f20a00b9f",
-                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "id": "bf9c6fc6-9884-49f3-a759-0ecad11ce96a",
+                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
                 "url": "https://www.sydneypelvicclinic.com.au/",
                 "businessName": "Comprehensive Pelvic Health Services at Sydney Pelvic Clinic",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T02:24:43.789Z",
-                "updatedAt": "2026-08-14T02:24:43.789Z"
+                "createdAt": "2026-08-14T03:45:56.488Z",
+                "updatedAt": "2026-08-14T03:45:56.488Z"
               }
             ]
           },
@@ -475,28 +474,4 @@
           }
         ]
       ]
-    },
-    "Send Results to Backend": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
-  },
-  "versionId": "fa2d6a33-f596-4c5b-bb20-4920e70930ea",
-  "meta": {
-    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
-  },
-  "id": "z1j5wEg9VVffvKvP",
-  "tags": []
-}
+ 
