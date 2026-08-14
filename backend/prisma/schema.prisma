@@ -117,6 +117,7 @@ model QueryResult {
   businessId   String?   @unique
   business     Business? @relation(fields: [businessId], references: [id])
   createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt // Only reliable timestamp for a scrape *failure* — scrapedAt only covers success
 }
 
 // ─── BULK CAMPAIGNS ──────────────────────────────────────────────────────────

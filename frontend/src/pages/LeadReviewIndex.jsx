@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQueries } from '../api/queries.js';
+import { SCRAPE_STATUS_LABELS, SCRAPE_STATUS_STYLES } from '../lib/scrapeStatus.js';
 
 export default function LeadReviewIndex() {
   const [queries, setQueries] = useState([]);
@@ -40,7 +41,7 @@ export default function LeadReviewIndex() {
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium">Query</th>
-                <th className="py-2 pr-4 font-medium">Searched</th>
+                <th className="py-2 pr-4 font-medium">Scrape Status</th>
                 <th className="py-2 pr-4 font-medium">Leads to review</th>
               </tr>
             </thead>
@@ -52,8 +53,19 @@ export default function LeadReviewIndex() {
                   className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
                 >
                   <td className="py-2 pr-4 text-slate-800">{q.text}</td>
-                  <td className="py-2 pr-4 text-slate-500">
-                    {new Date(q.ranAt).toLocaleString()}
+                  <td className="py-2 pr-4">
+                    <div className="flex flex-col gap-0.5">
+                      <span
+                        className={`w-fit px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[q.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
+                      >
+                        {SCRAPE_STATUS_LABELS[q.scrapeStatus] ?? q.scrapeStatus}
+                      </span>
+                      {q.lastScrapeActivityAt && (
+                        <span className="text-xs text-slate-400">
+                          {new Date(q.lastScrapeActivityAt).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-2 pr-4">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">

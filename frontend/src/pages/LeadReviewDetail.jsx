@@ -8,9 +8,11 @@ import {
   getQueryResultsStatus,
 } from '../api/queryResults.js';
 import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
+import { getQuery } from '../api/queries.js';
 import { useToast } from '../hooks/useToast.js';
 import Toast from '../components/Toast.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
+import { SCRAPE_STATUS_LABELS, SCRAPE_STATUS_STYLES } from '../lib/scrapeStatus.js';
 
 const FLAG_REASONS = ['Directory', 'Forum', 'Irrelevant', 'Duplicate', 'Other'];
 const PAGE_SIZE = 50;
@@ -53,7 +55,24 @@ export default function LeadReviewDetail({ queryId }) {
   const [scrapingIds, setScrapingIds] = useState([]);
   const [excludingId, setExcludingId] = useState(null);
   const [toast, showToast] = useToast();
+  const [queryStats, setQueryStats] = useState(null);
   const scrapePollRef = useRef(null);
+
+  const fetchQueryStats = useCallback(async () => {
+    // Best-effort — this only drives the status badge, so a failure here (e.g. a
+    // stale queryId) shouldn't break the rest of the page, which still works fine
+    // via the results[0]?.query?.text fallback below.
+    try {
+      const data = await getQuery(queryId);
+      setQueryStats(data);
+    } catch {
+      setQueryStats(null);
+    }
+  }, [queryId]);
+
+  useEffect(() => {
+    fetchQueryStats();
+  }, [fetchQueryStats]);
 
   const fetchResults = useCallback(
     async (targetPage = page) => {
@@ -86,6 +105,10 @@ export default function LeadReviewDetail({ queryId }) {
   useEffect(() => {
     fetchResultsRef.current = fetchResults;
   }, [fetchResults]);
+  const fetchQueryStatsRef = useRef(fetchQueryStats);
+  useEffect(() => {
+    fetchQueryStatsRef.current = fetchQueryStats;
+  }, [fetchQueryStats]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -189,6 +212,7 @@ export default function LeadReviewDetail({ queryId }) {
         }
         setScrapingIds([]);
         fetchResultsRef.current(pageRef.current);
+        fetchQueryStatsRef.current();
       }, 5000);
     },
     [showToast]
@@ -219,7 +243,11 @@ export default function LeadReviewDetail({ queryId }) {
     }
   };
 
-  const queryInfo = results[0]?.query;
+  // queryStats is the source of truth for the scrape status/date — falling back to
+  // the text embedded in a result row only covers the brief window before queryStats
+  // has loaded, since QueryManager already shows when this query was searched and
+  // that's not what this page needs to communicate.
+  const queryText = queryStats?.text || results[0]?.query?.text;
 
   return (
     <div>
@@ -228,11 +256,22 @@ export default function LeadReviewDetail({ queryId }) {
       </Link>
 
       <h1 className="text-2xl font-semibold text-slate-800 mt-2">
-        {queryInfo?.text || 'Query leads'}
+        {queryText || 'Query leads'}
       </h1>
-      <p className="text-slate-500 mt-1 text-sm">
-        {queryInfo?.ranAt ? `Searched ${new Date(queryInfo.ranAt).toLocaleString()}` : 'Reviewing leads for this query.'}
-      </p>
+      <div className="mt-1 flex items-center gap-2">
+        {queryStats?.scrapeStatus && (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[queryStats.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
+          >
+            {SCRAPE_STATUS_LABELS[queryStats.scrapeStatus] ?? queryStats.scrapeStatus}
+          </span>
+        )}
+        {queryStats?.lastScrapeActivityAt && (
+          <span className="text-xs text-slate-500">
+            {new Date(queryStats.lastScrapeActivityAt).toLocaleString()}
+          </span>
+        )}
+      </div>
 
       {scrapingIds.length > 0 ? (
         // Persistent for as long as the batch is unresolved — unlike the toast, this
