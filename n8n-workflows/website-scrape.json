@@ -12,7 +12,7 @@
       "typeVersion": 2.1,
       "position": [
         -672,
-        1072
+        1232
       ],
       "id": "bea8a985-f0f9-46ca-9857-ff717db29191",
       "name": "Webhook",
@@ -26,7 +26,7 @@
       "typeVersion": 3,
       "position": [
         -224,
-        1088
+        1232
       ],
       "id": "5e04aee0-875a-4f89-8c08-5832d2cf6d2e",
       "name": "Loop Over Items"
@@ -38,7 +38,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        464,
+        448,
         976
       ],
       "id": "4c38e2a5-bc2e-41b9-9814-3c8842870b2a",
@@ -53,7 +53,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array, not an object, and never null — use \"\" instead), even for multi-item fields like services or awards.\n3. Return only JSON in this exact shape, with everything nested inside an output key:\n{\"output\": {\"name\": \"...\", \"specialisation\": \"...\", \"location\": \"...\", \"phone\": \"...\", \"email\": \"...\", \"yearsExperience\": \"...\", \"services\": \"...\", \"awards\": \"...\"}}\n",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array, not an object, and never null — use \"\" instead), even for multi-item fields like services or awards.",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -62,7 +62,7 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "position": [
-        448,
+        480,
         752
       ],
       "id": "47c92d2b-a98e-4c1a-bdb9-79d8ddafc4be",
@@ -72,26 +72,27 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}"
+        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}",
+        "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        592,
-        960
+        576,
+        976
       ],
       "id": "84e70f0b-31b6-4470-9490-d22e3f00768d",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst sourceRow = $('Split the body into separate Items').first().json;\nif (input.error) {\n  return [{\n    json: {\n      queryResultId: sourceRow.id,\n      name: 'SCRAPE_EXTRACTION_ERROR',\n      specialisation: 'SCRAPE_EXTRACTION_ERROR',\n      location: 'SCRAPE_EXTRACTION_ERROR',\n      phone: 'SCRAPE_EXTRACTION_ERROR',\n      email: 'SCRAPE_EXTRACTION_ERROR',\n      yearsExperience: 'SCRAPE_EXTRACTION_ERROR',\n      services: 'SCRAPE_EXTRACTION_ERROR',\n      awards: 'SCRAPE_EXTRACTION_ERROR'\n    }\n  }];\n}\n\nconst extracted = input.output;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
+        "jsCode": "const input = $input.first().json;\nconst sourceRow = $('Split the body into separate Items').item.json;\nif (input.error) {\n  return [{\n    json: {\n      queryResultId: sourceRow.id,\n      name: 'SCRAPE_EXTRACTION_ERROR',\n      specialisation: 'SCRAPE_EXTRACTION_ERROR',\n      location: 'SCRAPE_EXTRACTION_ERROR',\n      phone: 'SCRAPE_EXTRACTION_ERROR',\n      email: 'SCRAPE_EXTRACTION_ERROR',\n      yearsExperience: 'SCRAPE_EXTRACTION_ERROR',\n      services: 'SCRAPE_EXTRACTION_ERROR',\n      awards: 'SCRAPE_EXTRACTION_ERROR'\n    }\n  }];\n}\n\nconst extracted = input.output;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        800,
-        1088
+        944,
+        1232
       ],
       "id": "356f9ae6-fc79-4912-9a27-13b4cbc85802",
       "name": "Attach queryResultId"
@@ -105,7 +106,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        512,
+        584,
         560
       ],
       "id": "c3395db1-3df0-4a11-b17d-380b1b44b528",
@@ -139,7 +140,7 @@
       "typeVersion": 4.2,
       "position": [
         0,
-        1008
+        1168
       ],
       "id": "b11fcb78-1379-4cd3-9cce-dfc3a51815d4",
       "name": "scrape from firecrawl",
@@ -188,7 +189,7 @@
       "typeVersion": 2,
       "position": [
         -448,
-        1088
+        1232
       ],
       "id": "7ba7409e-6cf3-4948-a2a2-458f8786e4de",
       "name": "Split the body into separate Items"
@@ -222,7 +223,7 @@
       "typeVersion": 2.2,
       "position": [
         224,
-        1008
+        1168
       ],
       "id": "ed3bcc64-d3d9-4ba1-95bd-4db34e6a37ab",
       "name": "Has Firecrawl Error?"
@@ -234,11 +235,31 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        512,
-        1152
+        592,
+        1360
       ],
       "id": "cf0410b5-da44-4464-90f1-a2a2f9cd9474",
       "name": "Build Error Result"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        1184
+      ],
+      "id": "3f3ce292-aaab-4215-8323-20c5a9e3b01c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     }
   ],
   "pinData": {
@@ -251,7 +272,7 @@
             "x-real-ip": "13.238.25.120",
             "x-forwarded-for": "13.238.25.120",
             "x-forwarded-proto": "https",
-            "content-length": "1873",
+            "content-length": "1058",
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "user-agent": "axios/1.16.1",
@@ -262,64 +283,40 @@
           "body": {
             "results": [
               {
-                "id": "3ac356ed-fd68-48f2-a859-6358725157d2",
-                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
-                "url": "https://www.sydneyphysioclinic.com.au/?srsltid=AfmBOorkWm7AoAlNhX2f_PAVmY-0GGHzIti2s2h5yOylUwGPQSJyXa5a",
-                "businessName": "Sydney CBD Physio Clinic | Top-Rated Physiotherapy ...",
+                "id": "0324dd36-0a80-4d09-aa5d-f76c35a8ddc0",
+                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
+                "url": "https://www.mayflowersydney.com/site/home",
+                "businessName": "Mayflower Dental in Sydney | Your Dentist in Sydney",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T03:45:56.488Z",
-                "updatedAt": "2026-08-14T03:45:56.488Z"
+                "createdAt": "2026-08-14T13:24:30.569Z",
+                "updatedAt": "2026-08-14T13:24:30.569Z"
               },
               {
-                "id": "a49e7d8e-dbe5-48c2-b15f-f6c8341a4cfb",
-                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
-                "url": "https://www.sydneyphysio.com.au/",
-                "businessName": "Sydney Physiotherapy – Sydney CBD physio clinic",
+                "id": "b8062dbe-de88-4ff9-b56d-bf439249f533",
+                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
+                "url": "https://slhd.health.nsw.gov.au/sydney-dental",
+                "businessName": "Sydney Dental Hospital",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T03:45:56.488Z",
-                "updatedAt": "2026-08-14T03:45:56.488Z"
+                "createdAt": "2026-08-14T13:24:30.569Z",
+                "updatedAt": "2026-08-14T13:24:30.569Z"
               },
               {
-                "id": "01ea76ce-00e5-4270-9ffc-99b1d956f45f",
-                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
-                "url": "https://www.instagram.com/sydneyphysioclinic/",
-                "businessName": "Sydney Physio Clinic (@sydneyphysioclinic)",
+                "id": "f2036c82-cbb8-4504-aa30-9e8b5e2e157c",
+                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
+                "url": "https://dental99.com.au/",
+                "businessName": "Dental 99 | Fixed-price dental care | Affordable dentist",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T03:45:56.488Z",
-                "updatedAt": "2026-08-14T03:45:56.488Z"
-              },
-              {
-                "id": "d8438628-d86a-4291-b0b2-661e03629189",
-                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
-                "url": "https://www.thesportsclinic.com.au/",
-                "businessName": "The Sports Clinic @ The University of Sydney | Sports ...",
-                "flagged": false,
-                "flagReason": null,
-                "scrapedAt": null,
-                "businessId": null,
-                "createdAt": "2026-08-14T03:45:56.488Z",
-                "updatedAt": "2026-08-14T03:45:56.488Z"
-              },
-              {
-                "id": "bf9c6fc6-9884-49f3-a759-0ecad11ce96a",
-                "queryId": "da8d5242-42e0-46c5-bde2-7d8787915ed9",
-                "url": "https://www.sydneypelvicclinic.com.au/",
-                "businessName": "Comprehensive Pelvic Health Services at Sydney Pelvic Clinic",
-                "flagged": false,
-                "flagReason": null,
-                "scrapedAt": null,
-                "businessId": null,
-                "createdAt": "2026-08-14T03:45:56.488Z",
-                "updatedAt": "2026-08-14T03:45:56.488Z"
+                "createdAt": "2026-08-14T13:24:30.569Z",
+                "updatedAt": "2026-08-14T13:24:30.569Z"
               }
             ]
           },
@@ -474,4 +471,40 @@
           }
         ]
       ]
- 
+    },
+    "Send Results to Backend": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f5c2d558-9df8-45be-8afb-c61f23f47739",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "z1j5wEg9VVffvKvP",
+  "tags": []
+}
