@@ -82,36 +82,54 @@ router.post('/scrape-complete', async (req, res, next) => {
     let failedCount = 0;
 
     for (const r of results) {
-      // Flag instead of creating a business — trusts the sentinel over blindly
-      // treating LLM/scrape garbage as a real business name.
-      if (SCRAPE_ERROR_PATTERN.test(r.name)) {
+      // Each item is isolated — the frontend polls every queryResultId it submitted
+      // until each one is either scraped or flagged, so one malformed item (e.g. Gemini
+      // returning an empty extraction with no name and no error sentinel) must not throw
+      // and abort the rest of the loop, or every item after it is silently abandoned
+      // mid-batch, stuck "pending" forever with no error surfaced anywhere.
+      try {
+        // Flag instead of creating a business — trusts the sentinel over blindly
+        // treating LLM/scrape garbage as a real business name. A missing/blank name
+        // (no sentinel, just nothing) is its own failure mode — Business.name is
+        // required, so this would otherwise throw deeper in the try below.
+        if (SCRAPE_ERROR_PATTERN.test(r.name) || !r.name) {
+          await prisma.queryResult.update({
+            where: { id: r.queryResultId },
+            data: { flagged: true, flagReason: SCRAPE_ERROR_PATTERN.test(r.name) ? r.name : 'SCRAPE_EXTRACTION_ERROR' },
+          });
+          failedCount++;
+          continue;
+        }
+
+        const business = await prisma.business.create({
+          data: {
+            name: r.name,
+            specialisation: r.specialisation || null,
+            location: r.location || null,
+            email: r.email || null,
+            phone: r.phone || null,
+            website: r.url || null,
+            services: r.services || null,
+            awards: r.awards || null,
+            yearsExperience: r.yearsExperience || null,
+            scrapedAt: new Date(),
+          },
+        });
+
         await prisma.queryResult.update({
           where: { id: r.queryResultId },
-          data: { flagged: true, flagReason: r.name },
+          data: { businessId: business.id, scrapedAt: new Date() },
         });
+      } catch (itemErr) {
+        console.error(`scrape-complete: failed to process queryResult ${r.queryResultId}:`, itemErr);
+        await prisma.queryResult
+          .update({
+            where: { id: r.queryResultId },
+            data: { flagged: true, flagReason: 'SCRAPE_PROCESSING_ERROR' },
+          })
+          .catch((flagErr) => console.error(`scrape-complete: also failed to flag ${r.queryResultId}:`, flagErr));
         failedCount++;
-        continue;
       }
-
-      const business = await prisma.business.create({
-        data: {
-          name: r.name,
-          specialisation: r.specialisation || null,
-          location: r.location || null,
-          email: r.email || null,
-          phone: r.phone || null,
-          website: r.url || null,
-          services: r.services || null,
-          awards: r.awards || null,
-          yearsExperience: r.yearsExperience || null,
-          scrapedAt: new Date(),
-        },
-      });
-
-      await prisma.queryResult.update({
-        where: { id: r.queryResultId },
-        data: { businessId: business.id, scrapedAt: new Date() },
-      });
     }
 
     // One notification for the whole batch, not one per business — the frontend's own

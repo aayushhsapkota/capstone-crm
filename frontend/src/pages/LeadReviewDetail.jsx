@@ -5,7 +5,6 @@ import {
   scrapeQueryResults,
   flagQueryResult,
   unflagQueryResult,
-  getQueryResultsStatus,
 } from '../api/queryResults.js';
 import { getOwnerProfile, saveOwnerProfile } from '../api/ownerProfile.js';
 import { getQuery } from '../api/queries.js';
@@ -13,6 +12,7 @@ import { useToast } from '../hooks/useToast.js';
 import Toast from '../components/Toast.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { SCRAPE_STATUS_LABELS, SCRAPE_STATUS_STYLES } from '../lib/scrapeStatus.js';
+import { useScrapeTracker } from '../context/ScrapeTracker.jsx';
 
 const FLAG_REASONS = ['Directory', 'Forum', 'Irrelevant', 'Duplicate', 'Other'];
 const PAGE_SIZE = 50;
@@ -52,11 +52,11 @@ export default function LeadReviewDetail({ queryId }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
-  const [scrapingIds, setScrapingIds] = useState([]);
   const [excludingId, setExcludingId] = useState(null);
   const [toast, showToast] = useToast();
   const [queryStats, setQueryStats] = useState(null);
-  const scrapePollRef = useRef(null);
+  const { batches, startBatch } = useScrapeTracker();
+  const scrapingIds = batches[queryId] || [];
 
   const fetchQueryStats = useCallback(async () => {
     // Best-effort — this only drives the status badge, so a failure here (e.g. a
@@ -187,51 +187,27 @@ export default function LeadReviewDetail({ queryId }) {
     }
   };
 
-  // A toast alone isn't enough for "scraping is happening" — it auto-dismisses in a
-  // few seconds while the actual scrape (Firecrawl + Gemini per lead, via n8n) can
-  // take much longer. This polls the exact batch of IDs just submitted until every one
-  // of them has resolved — either scraped into a Business, or flagged via
-  // scrape-complete's SCRAPE_*_ERROR sentinel — then reports one final toast with the
-  // real outcome and stops. The persistent banner (rendered below) is what stays
-  // visible for the whole wait; the toast is just the completion notice.
-  const pollScrapeStatus = useCallback(
-    (ids) => {
-      scrapePollRef.current = setInterval(async () => {
-        const rows = await getQueryResultsStatus(ids);
-        const stillPending = rows.some((r) => !r.scrapedAt && !r.flagged);
-        if (stillPending) return;
-
-        clearInterval(scrapePollRef.current);
-        scrapePollRef.current = null;
-
-        const failedCount = rows.filter((r) => r.flagged).length;
-        if (failedCount === 0) {
-          showToast('Scraping completed successfully.');
-        } else {
-          showToast(`Scraping completed with ${failedCount} failed lead${failedCount === 1 ? '' : 's'}.`, 'error');
-        }
-        setScrapingIds([]);
-        fetchResultsRef.current(pageRef.current);
-        fetchQueryStatsRef.current();
-      }, 5000);
-    },
-    [showToast]
-  );
-
+  // The actual polling now lives in ScrapeTrackerProvider (mounted in Layout, above
+  // the router) so it — and the completion toast — survive navigating away from this
+  // page. This just watches for *this* query's batch going from in-flight to resolved
+  // while we're still mounted here, to refresh the visible table and status badge live.
+  const wasScrapingRef = useRef(scrapingIds.length > 0);
   useEffect(() => {
-    return () => {
-      if (scrapePollRef.current) clearInterval(scrapePollRef.current);
-    };
-  }, []);
+    const isScraping = scrapingIds.length > 0;
+    if (wasScrapingRef.current && !isScraping) {
+      fetchResultsRef.current(pageRef.current);
+      fetchQueryStatsRef.current();
+    }
+    wasScrapingRef.current = isScraping;
+  }, [scrapingIds.length]);
 
   const handleScrapeSelected = async () => {
     setScraping(true);
     try {
       const ids = [...selectedIds];
       const { count } = await scrapeQueryResults(ids);
-      setScrapingIds(ids);
+      startBatch(queryId, ids);
       setSelectedIds(new Set());
-      pollScrapeStatus(ids);
       showToast(`Scraping ${count} URL${count === 1 ? '' : 's'} started…`);
     } catch (err) {
       // Same caveat as QueryManager's runQuery — the backend dispatches to n8n
@@ -259,17 +235,27 @@ export default function LeadReviewDetail({ queryId }) {
         {queryText || 'Query leads'}
       </h1>
       <div className="mt-1 flex items-center gap-2">
-        {queryStats?.scrapeStatus && (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[queryStats.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
-          >
-            {SCRAPE_STATUS_LABELS[queryStats.scrapeStatus] ?? queryStats.scrapeStatus}
+        {scrapingIds.length > 0 ? (
+          // Overrides the queryStats-derived badge below — otherwise it'd sit right
+          // above the "scraping in the background" banner still saying "Not started".
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+            Running in background
           </span>
-        )}
-        {queryStats?.lastScrapeActivityAt && (
-          <span className="text-xs text-slate-500">
-            {new Date(queryStats.lastScrapeActivityAt).toLocaleString()}
-          </span>
+        ) : (
+          <>
+            {queryStats?.scrapeStatus && (
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[queryStats.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
+              >
+                {SCRAPE_STATUS_LABELS[queryStats.scrapeStatus] ?? queryStats.scrapeStatus}
+              </span>
+            )}
+            {queryStats?.lastScrapeActivityAt && (
+              <span className="text-xs text-slate-500">
+                {new Date(queryStats.lastScrapeActivityAt).toLocaleString()}
+              </span>
+            )}
+          </>
         )}
       </div>
 

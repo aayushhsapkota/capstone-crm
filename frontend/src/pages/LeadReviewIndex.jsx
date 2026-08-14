@@ -1,23 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQueries } from '../api/queries.js';
 import { SCRAPE_STATUS_LABELS, SCRAPE_STATUS_STYLES } from '../lib/scrapeStatus.js';
+import { useScrapeTracker } from '../context/ScrapeTracker.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 export default function LeadReviewIndex() {
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { batches } = useScrapeTracker();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const data = await getQueries();
     setQueries(data);
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // A batch resolving disappears from `batches` — that's the cue to silently refetch
+  // so the badge moves from "Running in background" straight to the real outcome
+  // (Completed / Completed with failures) instead of falling back to whatever the
+  // status was before the scrape started. Silent so the table doesn't flash "Loading…"
+  // for what's otherwise a background update.
+  const prevBatchKeysRef = useRef(new Set());
+  useEffect(() => {
+    const currentKeys = new Set(Object.keys(batches));
+    const hadCompletion = [...prevBatchKeysRef.current].some((k) => !currentKeys.has(k));
+    if (hadCompletion) load(true);
+    prevBatchKeysRef.current = currentKeys;
+  }, [batches, load]);
 
   // Only searches with something still actionable — a query where every lead has
   // already been scraped or flagged has nothing left to review, so it'd just be
@@ -55,15 +71,23 @@ export default function LeadReviewIndex() {
                   <td className="py-2 pr-4 text-slate-800">{q.text}</td>
                   <td className="py-2 pr-4">
                     <div className="flex flex-col gap-0.5">
-                      <span
-                        className={`w-fit px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[q.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
-                      >
-                        {SCRAPE_STATUS_LABELS[q.scrapeStatus] ?? q.scrapeStatus}
-                      </span>
-                      {q.lastScrapeActivityAt && (
-                        <span className="text-xs text-slate-400">
-                          {new Date(q.lastScrapeActivityAt).toLocaleString()}
+                      {(batches[q.id]?.length || 0) > 0 ? (
+                        <span className="w-fit flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          <LoadingSpinner className="w-2.5 h-2.5" /> Running in background
                         </span>
+                      ) : (
+                        <>
+                          <span
+                            className={`w-fit px-2 py-0.5 rounded-full text-xs font-medium ${SCRAPE_STATUS_STYLES[q.scrapeStatus] ?? 'bg-slate-100 text-slate-600'}`}
+                          >
+                            {SCRAPE_STATUS_LABELS[q.scrapeStatus] ?? q.scrapeStatus}
+                          </span>
+                          {q.lastScrapeActivityAt && (
+                            <span className="text-xs text-slate-400">
+                              {new Date(q.lastScrapeActivityAt).toLocaleString()}
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

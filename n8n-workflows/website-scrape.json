@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -752,
-        656
+        -672,
+        1072
       ],
-      "id": "d3b284b3-b72d-4d78-ba4b-61bb5ed738b4",
+      "id": "bea8a985-f0f9-46ca-9857-ff717db29191",
       "name": "Webhook",
       "webhookId": "scrape-websites"
     },
@@ -25,10 +25,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -304,
-        660
+        -224,
+        1088
       ],
-      "id": "398ae347-987c-4ed2-9640-74cf09f5395a",
+      "id": "5e04aee0-875a-4f89-8c08-5832d2cf6d2e",
       "name": "Loop Over Items"
     },
     {
@@ -38,10 +38,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        376,
-        560
+        464,
+        976
       ],
-      "id": "d31fd25d-81c7-457e-8fc7-e22fd7a4b00f",
+      "id": "4c38e2a5-bc2e-41b9-9814-3c8842870b2a",
       "name": "Gemini Model",
       "credentials": {
         "googlePalmApi": {
@@ -62,38 +62,39 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "position": [
-        368,
-        336
+        448,
+        752
       ],
-      "id": "69009d5d-3ec0-402d-b03e-4989d777a6f5",
+      "id": "47c92d2b-a98e-4c1a-bdb9-79d8ddafc4be",
       "name": "AI Extract Business Data",
-      "retryOnFail": true,
+      "retryOnFail": false,
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"name\": \"ABC Clinic\",\n  \"specialisation\": \"Dental Clinic\",\n  \"location\": \"Sydney, NSW\",\n  \"phone\": \"\",\n  \"email\": \"contact@abcclinic.com\",\n  \"yearsExperience\": \"10+\",\n  \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n  \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n}"
+        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}",
+        "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        504,
-        560
+        592,
+        976
       ],
-      "id": "c109367b-6c43-4316-bf01-1d2d1eac39f9",
+      "id": "84e70f0b-31b6-4470-9490-d22e3f00768d",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst sourceRow = $('Split the body into separate Items').item.json;\n\nif (input.error) {\n  return [{\n    json: {\n      queryResultId: sourceRow.id,\n      name: 'SCRAPE_EXTRACTION_ERROR',\n      specialisation: 'SCRAPE_EXTRACTION_ERROR',\n      location: 'SCRAPE_EXTRACTION_ERROR',\n      phone: 'SCRAPE_EXTRACTION_ERROR',\n      email: 'SCRAPE_EXTRACTION_ERROR',\n      yearsExperience: 'SCRAPE_EXTRACTION_ERROR',\n      services: 'SCRAPE_EXTRACTION_ERROR',\n      awards: 'SCRAPE_EXTRACTION_ERROR'\n    }\n  }];\n}\n\nconst extracted = input.output;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
+        "jsCode": "const input = $input.first().json;\nconst sourceRow = $('Split the body into separate Items').first().json;\nif (input.error) {\n  return [{\n    json: {\n      queryResultId: sourceRow.id,\n      name: 'SCRAPE_EXTRACTION_ERROR',\n      specialisation: 'SCRAPE_EXTRACTION_ERROR',\n      location: 'SCRAPE_EXTRACTION_ERROR',\n      phone: 'SCRAPE_EXTRACTION_ERROR',\n      email: 'SCRAPE_EXTRACTION_ERROR',\n      yearsExperience: 'SCRAPE_EXTRACTION_ERROR',\n      services: 'SCRAPE_EXTRACTION_ERROR',\n      awards: 'SCRAPE_EXTRACTION_ERROR'\n    }\n  }];\n}\n\nconst extracted = input.output;\nreturn [{\n  json: {\n    queryResultId: sourceRow.id,\n    url: sourceRow.url,\n    ...extracted\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
-        660
+        800,
+        1088
       ],
-      "id": "317a6009-36d4-4ced-85d8-6858763f30a1",
+      "id": "356f9ae6-fc79-4912-9a27-13b4cbc85802",
       "name": "Attach queryResultId"
     },
     {
@@ -105,10 +106,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        432,
-        144
+        512,
+        560
       ],
-      "id": "0ae2cf5c-60e7-42d2-832f-cbadc10c20d0",
+      "id": "c3395db1-3df0-4a11-b17d-380b1b44b528",
       "name": "Respond to Webhook"
     },
     {
@@ -118,10 +119,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        144
+        0,
+        560
       ],
-      "id": "f43b1fce-cf5b-44d2-89cf-8c8d70ca970f",
+      "id": "6cef212b-458e-49a0-b664-a4fa835de33e",
       "name": "Aggregate Results"
     },
     {
@@ -138,10 +139,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -80,
-        588
+        0,
+        1008
       ],
-      "id": "59389d05-e7e2-44f1-932f-d2c8d856dfa7",
+      "id": "b11fcb78-1379-4cd3-9cce-dfc3a51815d4",
       "name": "scrape from firecrawl",
       "retryOnFail": true,
       "credentials": {
@@ -166,10 +167,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        144,
-        144
+        224,
+        560
       ],
-      "id": "c490fbdf-d872-4c02-889c-3931e2323ef3",
+      "id": "cc6450ed-0a80-4936-82f7-a849742bc912",
       "name": "Send Results to Backend",
       "retryOnFail": true,
       "credentials": {
@@ -187,10 +188,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -528,
-        660
+        -448,
+        1088
       ],
-      "id": "b00cd05e-a007-4ab5-887d-812e2c79f25c",
+      "id": "7ba7409e-6cf3-4948-a2a2-458f8786e4de",
       "name": "Split the body into separate Items"
     },
     {
@@ -221,23 +222,23 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        144,
-        588
+        224,
+        1008
       ],
-      "id": "7a3a1c79-6827-4acc-bded-2e20686af672",
+      "id": "ed3bcc64-d3d9-4ba1-95bd-4db34e6a37ab",
       "name": "Has Firecrawl Error?"
     },
     {
       "parameters": {
-        "jsCode": "const queryResultId = $('Split the body into separate Items').first().json.id;\nreturn [{\n  json: {\n    queryResultId,\n    name: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    specialisation: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    location: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    phone: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    email: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    yearsExperience: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    services: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    awards: 'SCRAPE_FIRECRAWL_REQUEST_ERROR'\n  }\n}];"
+        "jsCode": "const queryResultId = $input.first().json.id;\nreturn [{\n  json: {\n    queryResultId,\n    name: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    specialisation: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    location: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    phone: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    email: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    yearsExperience: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    services: 'SCRAPE_FIRECRAWL_REQUEST_ERROR',\n    awards: 'SCRAPE_FIRECRAWL_REQUEST_ERROR'\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        432,
-        736
+        512,
+        1152
       ],
-      "id": "987a354a-7df1-4cf3-b0f0-759de255a090",
+      "id": "cf0410b5-da44-4464-90f1-a2a2f9cd9474",
       "name": "Build Error Result"
     }
   ],
@@ -251,7 +252,7 @@
             "x-real-ip": "13.238.25.120",
             "x-forwarded-for": "13.238.25.120",
             "x-forwarded-proto": "https",
-            "content-length": "293",
+            "content-length": "1873",
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "user-agent": "axios/1.16.1",
@@ -262,15 +263,64 @@
           "body": {
             "results": [
               {
-                "id": "582ecd28-be47-43ca-b2d1-5d0dfc78d455",
-                "queryId": "ba140e97-a5f9-41cd-9fde-de7675485268",
-                "url": "not-a-valid-url-at-all",
-                "businessName": "Deliberately Broken URL Test",
+                "id": "34d1ac0e-ecd4-4337-888e-c70b1eaccce6",
+                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "url": "https://www.sydneyphysioclinic.com.au/?srsltid=AfmBOorkWm7AoAlNhX2f_PAVmY-0GGHzIti2s2h5yOylUwGPQSJyXa5a",
+                "businessName": "Sydney CBD Physio Clinic | Top-Rated Physiotherapy ...",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-11T13:40:05.410Z"
+                "createdAt": "2026-08-14T02:24:43.789Z",
+                "updatedAt": "2026-08-14T02:24:43.789Z"
+              },
+              {
+                "id": "daca2b07-7457-4d42-83f9-ec58bdab96e8",
+                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "url": "https://www.sydneyphysio.com.au/",
+                "businessName": "Sydney Physiotherapy – Sydney CBD physio clinic",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T02:24:43.789Z",
+                "updatedAt": "2026-08-14T02:24:43.789Z"
+              },
+              {
+                "id": "cb67f4e0-c879-4579-a0e2-82468f91c028",
+                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "url": "https://www.instagram.com/sydneyphysioclinic/",
+                "businessName": "Sydney Physio Clinic (@sydneyphysioclinic)",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T02:24:43.789Z",
+                "updatedAt": "2026-08-14T02:24:43.789Z"
+              },
+              {
+                "id": "3a3f7401-b38b-466d-9a8d-8b5af3290d5c",
+                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "url": "https://www.thesportsclinic.com.au/",
+                "businessName": "The Sports Clinic @ The University of Sydney | Sports ...",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T02:24:43.789Z",
+                "updatedAt": "2026-08-14T02:24:43.789Z"
+              },
+              {
+                "id": "0c769f40-db84-4aff-b9f6-cf7f20a00b9f",
+                "queryId": "0648736c-80bf-44d3-a64a-82e76d7614c2",
+                "url": "https://www.sydneypelvicclinic.com.au/",
+                "businessName": "Comprehensive Pelvic Health Services at Sydney Pelvic Clinic",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T02:24:43.789Z",
+                "updatedAt": "2026-08-14T02:24:43.789Z"
               }
             ]
           },
@@ -443,7 +493,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "85c98e94-e6ae-4ec2-bcce-f3272055b161",
+  "versionId": "fa2d6a33-f596-4c5b-bb20-4920e70930ea",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
