@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBusinesses } from '../api/businesses.js';
+import { getBusinesses, getBusinessIds } from '../api/businesses.js';
 import BulkSendModal from '../components/BulkSendModal.jsx';
 import { STATUS_STYLES } from '../components/StatusBadge.jsx';
 
@@ -109,16 +109,16 @@ export default function BusinessesIndex() {
   };
 
   // Fetches every id matching the current search/status filter, not just the page
-  // that's currently loaded — reuses the same list endpoint with a limit covering the
-  // full result set, since a one-off "select all" click doesn't need pagination.
+  // that's currently loaded — ids only, not full rows, since all a bulk send ever
+  // needs from this is the id list.
   const handleSelectAllMatching = async () => {
     setSelectingAll(true);
     try {
-      const params = { page: 1, limit: total };
+      const params = {};
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      const data = await getBusinesses(params);
-      setCheckedIds(new Set(data.businesses.map((b) => b.id)));
+      const ids = await getBusinessIds(params);
+      setCheckedIds(new Set(ids));
       setSelectAllMatching(true);
     } catch {
       // Leaves the current page-scoped selection intact — the user can just try

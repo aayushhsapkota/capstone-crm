@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res, next) => {
   try {
     //test deployment again
-    const { status, unsubscribed, search, page = 1, limit = 50 } = req.query;
+    const { status, unsubscribed, search, page = 1, limit = 50, idsOnly } = req.query;
     const where = {};
 
     if (status) where.status = status;
@@ -17,6 +17,15 @@ router.get('/', async (req, res, next) => {
         { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // For "select all N matching" — every id matching the filter, unpaginated, and
+    // without pulling every column for rows that are only ever going to be used as a
+    // businessId in a campaign. Shares the same `where` as the normal list above so
+    // the filter logic can't drift between the two.
+    if (idsOnly === 'true') {
+      const rows = await prisma.business.findMany({ where, select: { id: true } });
+      return res.json({ ids: rows.map((r) => r.id) });
     }
 
     const [businesses, total] = await Promise.all([
