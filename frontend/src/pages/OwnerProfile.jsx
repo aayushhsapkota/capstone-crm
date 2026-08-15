@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getOwnerProfile, saveOwnerProfile, scrapeOwnerProfileFromWebsite } from '../api/ownerProfile.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
-import HtmlTemplateEditor from '../components/HtmlTemplateEditor.jsx';
 import { buildSignatureHtml } from '../lib/signatureTemplate.js';
-import {
-  buildIntroTemplateHtml,
-  buildOfferTemplateHtml,
-  INTRO_PLACEHOLDERS,
-  OFFER_PLACEHOLDERS,
-} from '../lib/emailTemplate.js';
 
 let rowKey = 0;
 
 function toServiceRow(entry) {
   if (typeof entry === 'string') return { _id: rowKey++, service: entry, description: '' };
   return { _id: rowKey++, service: entry.service || '', description: entry.description || '' };
+}
+
+// A contentEditable div can render markup (tags, styling) with no leading/trailing
+// text, so a plain .trim() on the raw HTML string isn't a reliable "is this actually
+// empty" check.
+function isHtmlEmpty(html) {
+  if (!html) return true;
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
 }
 
 export default function OwnerProfile() {
@@ -30,11 +31,12 @@ export default function OwnerProfile() {
   const [fetchError, setFetchError] = useState('');
   const [saveError, setSaveError] = useState('');
   const [loadError, setLoadError] = useState(false);
+  const [signatureMode, setSignatureMode] = useState('visual');
+  const [signatureEmpty, setSignatureEmpty] = useState(true);
   const logoFieldRef = useRef(null);
   const heroFieldRef = useRef(null);
   const signatureEditorRef = useRef(null);
-  const introEditorRef = useRef(null);
-  const offerEditorRef = useRef(null);
+  const signatureMountedRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,8 +52,6 @@ export default function OwnerProfile() {
         website: profile.website || '',
         phone: profile.phone || '',
         signatureHtml: profile.signatureHtml || '',
-        introTemplateHtml: profile.introTemplateHtml || '',
-        offerTemplateHtml: profile.offerTemplateHtml || '',
         logoUrl: profile.logoUrl || '',
         heroImageUrl: profile.heroImageUrl || '',
       });
@@ -74,10 +74,24 @@ export default function OwnerProfile() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Each of these both updates the saved form value and pushes the same html straight
-  // into its editor's DOM (via the ref) — the editor doesn't watch the form value on
-  // its own, so without the ref call "Generate" would update state but the visual view
-  // wouldn't change until some unrelated re-render happened to remount it.
+  // Puts the loaded signature into the visual editor's DOM exactly once, the first
+  // time the DOM node exists — a ref callback fires reliably when that happens, unlike
+  // trying to do this during render (signatureEditorRef.current isn't guaranteed to
+  // exist yet, and the div doesn't render at all until `form` is loaded). Wrapped in
+  // useCallback so it's a stable function identity — an inline ref callback would get
+  // called with null then the node again on every render.
+  const handleSignatureEditorRef = useCallback(
+    (node) => {
+      signatureEditorRef.current = node;
+      if (node && !signatureMountedRef.current && form) {
+        signatureMountedRef.current = true;
+        node.innerHTML = form.signatureHtml || '';
+        setSignatureEmpty(isHtmlEmpty(form.signatureHtml));
+      }
+    },
+    [form]
+  );
+
   const handleGenerateSignature = () => {
     const html = buildSignatureHtml({
       companyName: form.companyName,
@@ -88,19 +102,28 @@ export default function OwnerProfile() {
       logoUrl: form.logoUrl,
     });
     handleFieldChange('signatureHtml', html);
-    signatureEditorRef.current?.setContent(html);
+    if (signatureEditorRef.current) signatureEditorRef.current.innerHTML = html;
+    setSignatureEmpty(isHtmlEmpty(html));
   };
 
-  const handleGenerateIntroTemplate = () => {
-    const html = buildIntroTemplateHtml();
-    handleFieldChange('introTemplateHtml', html);
-    introEditorRef.current?.setContent(html);
+  const handleSignatureInput = (e) => {
+    const html = e.currentTarget.innerHTML;
+    handleFieldChange('signatureHtml', html);
+    setSignatureEmpty(isHtmlEmpty(html));
   };
 
-  const handleGenerateOfferTemplate = () => {
-    const html = buildOfferTemplateHtml();
-    handleFieldChange('offerTemplateHtml', html);
-    offerEditorRef.current?.setContent(html);
+  const handleSignatureTextareaChange = (e) => {
+    handleFieldChange('signatureHtml', e.target.value);
+    setSignatureEmpty(isHtmlEmpty(e.target.value));
+  };
+
+  const handleSwitchSignatureMode = (next) => {
+    // Coming back into visual mode, the editor's DOM may be stale against whatever was
+    // typed into the raw-HTML textarea while it was the active mode — resync from state.
+    if (next === 'visual' && signatureEditorRef.current) {
+      signatureEditorRef.current.innerHTML = form.signatureHtml;
+    }
+    setSignatureMode(next);
   };
 
   const handleServiceChange = (rowId, field, value) => {
@@ -172,8 +195,6 @@ export default function OwnerProfile() {
         website: form.website || null,
         phone: form.phone || null,
         signatureHtml: form.signatureHtml || null,
-        introTemplateHtml: form.introTemplateHtml || null,
-        offerTemplateHtml: form.offerTemplateHtml || null,
         logoUrl: logoUrl || null,
         heroImageUrl: heroImageUrl || null,
         services,
@@ -441,72 +462,52 @@ export default function OwnerProfile() {
         </div>
 
         <div className="mt-3">
-          <HtmlTemplateEditor
-            ref={signatureEditorRef}
-            initialValue={form.signatureHtml}
-            onChange={(html) => handleFieldChange('signatureHtml', html)}
-          />
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700">Intro Email Design</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              The layout used for plain outreach emails (no offer attached). AI still
-              writes the subject and body — this controls how it's presented.
-            </p>
+          <div className="flex items-center gap-1 text-xs">
+            <button
+              type="button"
+              onClick={() => handleSwitchSignatureMode('visual')}
+              className={`px-2 py-1 rounded-md ${
+                signatureMode === 'visual' ? 'bg-slate-200 text-slate-800 font-medium' : 'text-slate-500 hover:bg-slate-100'
+              }`}
+            >
+              Edit visually
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchSignatureMode('html')}
+              className={`px-2 py-1 rounded-md ${
+                signatureMode === 'html' ? 'bg-slate-200 text-slate-800 font-medium' : 'text-slate-500 hover:bg-slate-100'
+              }`}
+            >
+              Edit HTML
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleGenerateIntroTemplate}
-            className="text-xs px-2 py-1 border border-slate-300 rounded-md hover:bg-slate-50 shrink-0"
-          >
-            ✦ Generate starter design
-          </button>
-        </div>
 
-        <div className="mt-3">
-          <HtmlTemplateEditor
-            ref={introEditorRef}
-            initialValue={form.introTemplateHtml}
-            onChange={(html) => handleFieldChange('introTemplateHtml', html)}
-            placeholderReference={INTRO_PLACEHOLDERS}
-            rows={16}
-            minHeight="16rem"
-            maxHeight="34rem"
-          />
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700">Offer Email Design</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              The layout used when an email includes a specific offer/discount.
+          {/* Both modes stay mounted — toggled with `hidden` rather than conditionally
+              rendered, so the visual editor's DOM (and cursor position, if focused)
+              never gets torn down and rebuilt by switching tabs. */}
+          <div className={`mt-2 ${signatureMode === 'visual' ? '' : 'hidden'}`}>
+            <p className={`text-xs text-slate-400 mb-1 ${signatureEmpty ? '' : 'hidden'}`}>
+              Nothing yet — try "Generate from profile".
             </p>
+            <div
+              ref={handleSignatureEditorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleSignatureInput}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm prose-sm overflow-auto focus:outline-none focus:ring-1 focus:ring-slate-400"
+              style={{ minHeight: '9.5rem', maxHeight: '24rem' }}
+            />
           </div>
-          <button
-            type="button"
-            onClick={handleGenerateOfferTemplate}
-            className="text-xs px-2 py-1 border border-slate-300 rounded-md hover:bg-slate-50 shrink-0"
-          >
-            ✦ Generate starter design
-          </button>
-        </div>
-
-        <div className="mt-3">
-          <HtmlTemplateEditor
-            ref={offerEditorRef}
-            initialValue={form.offerTemplateHtml}
-            onChange={(html) => handleFieldChange('offerTemplateHtml', html)}
-            placeholderReference={OFFER_PLACEHOLDERS}
-            rows={16}
-            minHeight="16rem"
-            maxHeight="34rem"
-          />
+          <div className={`mt-2 ${signatureMode === 'html' ? '' : 'hidden'}`}>
+            <textarea
+              value={form.signatureHtml}
+              onChange={handleSignatureTextareaChange}
+              rows={8}
+              placeholder="<p>Best regards,<br/>Your Name</p>"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm resize-none font-mono"
+            />
+          </div>
         </div>
       </div>
 

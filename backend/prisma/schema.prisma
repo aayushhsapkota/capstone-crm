@@ -199,11 +199,6 @@ model OwnerProfile {
   phone          String?
   services       Json?    // Array of service name strings
   signatureHtml  String?
-  // Full-email layout, hand-designed in the frontend — contains {{PLACEHOLDER}}
-  // tokens the email-generation workflow substitutes with AI-written content and
-  // per-business values at generate time (see frontend/src/lib/emailTemplate.js).
-  introTemplateHtml String?
-  offerTemplateHtml String?
   logoUrl        String?
   heroImageUrl   String?  // Intro email header image
   excludeSites   String[] @default([])  // Domains appended as -site: exclusions to every search query
