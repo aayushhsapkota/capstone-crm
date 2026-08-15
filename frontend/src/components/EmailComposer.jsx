@@ -32,13 +32,17 @@ export default function EmailComposer({ businessId, onSent }) {
   // generating. All selected by default; unchecking one just leaves it out of this
   // particular email rather than removing it from the owner profile.
   useEffect(() => {
-    getOwnerProfile().then((profile) => {
-      const names = (profile.services || [])
-        .map((s) => (typeof s === 'string' ? s : s.service))
-        .filter(Boolean);
-      setServices(names);
-      setSelectedServices(new Set(names));
-    });
+    getOwnerProfile()
+      .then((profile) => {
+        const names = (profile.services || [])
+          .map((s) => (typeof s === 'string' ? s : s.service))
+          .filter(Boolean);
+        setServices(names);
+        setSelectedServices(new Set(names));
+      })
+      // Degrades gracefully either way — the picker just doesn't show — so this only
+      // needs to stop it from being an unhandled rejection in the console.
+      .catch((err) => console.error('Failed to load services for picker:', err));
   }, []);
 
   useEffect(() => {

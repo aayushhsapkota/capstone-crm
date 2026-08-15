@@ -38,23 +38,32 @@ export default function BusinessProfile() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const business = await getBusiness(id);
-    const initialForm = {};
-    FIELDS.forEach(({ key }) => {
-      initialForm[key] = business[key] ?? '';
-    });
-    setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl, scrapedAt: business.scrapedAt });
-    setAttrRows(
-      Object.entries(business.customAttrs || {}).map(([key, value]) => ({
-        _id: rowKey++,
-        key,
-        value: value ?? '',
-      }))
-    );
-    setLoading(false);
+    try {
+      const business = await getBusiness(id);
+      const initialForm = {};
+      FIELDS.forEach(({ key }) => {
+        initialForm[key] = business[key] ?? '';
+      });
+      setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl, scrapedAt: business.scrapedAt });
+      setAttrRows(
+        Object.entries(business.customAttrs || {}).map(([key, value]) => ({
+          _id: rowKey++,
+          key,
+          value: value ?? '',
+        }))
+      );
+      setLoadError(false);
+    } catch {
+      // Without this, a failed fetch left the page stuck on "Loading business…"
+      // forever with no way out except navigating away and back.
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
@@ -109,8 +118,22 @@ export default function BusinessProfile() {
     }
   };
 
-  if (loading || !form) {
+  if (loading) {
     return <p className="text-slate-400 text-sm">Loading business…</p>;
+  }
+
+  if (loadError || !form) {
+    return (
+      <div>
+        <p className="text-sm text-red-600">Failed to load this business.</p>
+        <button
+          onClick={load}
+          className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   const visibleAttrRows = attrRows.filter((r) => !r._removed);

@@ -25,6 +25,7 @@ export default function BusinessesIndex() {
   const [statusFilter, setStatusFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [campaignMessage, setCampaignMessage] = useState('');
   const navigate = useNavigate();
@@ -32,17 +33,25 @@ export default function BusinessesIndex() {
   const fetchBusinesses = useCallback(
     async (targetPage = page) => {
       setLoading(true);
-      const params = { page: targetPage, limit: PAGE_SIZE };
-      if (search) params.search = search;
-      if (statusFilter) params.status = statusFilter;
-      const data = await getBusinesses(params);
-      setBusinesses(data.businesses);
-      setTotal(data.total);
-      setPage(data.page);
-      // Scoped to the page actually loaded — a business checked before changing page
-      // or filter shouldn't silently carry into a bulk send it's no longer visible in.
-      setCheckedIds(new Set());
-      setLoading(false);
+      try {
+        const params = { page: targetPage, limit: PAGE_SIZE };
+        if (search) params.search = search;
+        if (statusFilter) params.status = statusFilter;
+        const data = await getBusinesses(params);
+        setBusinesses(data.businesses);
+        setTotal(data.total);
+        setPage(data.page);
+        // Scoped to the page actually loaded — a business checked before changing page
+        // or filter shouldn't silently carry into a bulk send it's no longer visible in.
+        setCheckedIds(new Set());
+        setLoadError(false);
+      } catch {
+        // Without this, a failed fetch (initial load or Previous/Next) left the table
+        // stuck on "Loading…" forever with no way out except navigating away and back.
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
     },
     [search, statusFilter] // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -114,6 +123,16 @@ export default function BusinessesIndex() {
       <div className="mt-4">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading…</p>
+        ) : loadError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load businesses.</p>
+            <button
+              onClick={() => fetchBusinesses(page)}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : businesses.length === 0 ? (
           <p className="text-slate-400 text-sm">No businesses found.</p>
         ) : (

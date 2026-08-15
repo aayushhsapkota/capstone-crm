@@ -30,6 +30,7 @@ export default function OwnerProfile() {
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [loadError, setLoadError] = useState(false);
   const [signatureMode, setSignatureMode] = useState('visual'); // 'visual' | 'html'
   const [signatureEmpty, setSignatureEmpty] = useState(true);
   const logoFieldRef = useRef(null);
@@ -38,23 +39,30 @@ export default function OwnerProfile() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const profile = await getOwnerProfile();
-    setForm({
-      id: profile.id,
-      companyName: profile.companyName || '',
-      senderName: profile.senderName || '',
-      senderEmail: profile.senderEmail || '',
-      specialisation: profile.specialisation || '',
-      slogan: profile.slogan || '',
-      website: profile.website || '',
-      phone: profile.phone || '',
-      signatureHtml: profile.signatureHtml || '',
-      logoUrl: profile.logoUrl || '',
-      heroImageUrl: profile.heroImageUrl || '',
-    });
-    setServiceRows((profile.services || []).map(toServiceRow));
-    setExcludeSites(profile.excludeSites || []);
-    setLoading(false);
+    try {
+      const profile = await getOwnerProfile();
+      setForm({
+        id: profile.id,
+        companyName: profile.companyName || '',
+        senderName: profile.senderName || '',
+        senderEmail: profile.senderEmail || '',
+        specialisation: profile.specialisation || '',
+        slogan: profile.slogan || '',
+        website: profile.website || '',
+        phone: profile.phone || '',
+        signatureHtml: profile.signatureHtml || '',
+        logoUrl: profile.logoUrl || '',
+        heroImageUrl: profile.heroImageUrl || '',
+      });
+      setServiceRows((profile.services || []).map(toServiceRow));
+      setExcludeSites(profile.excludeSites || []);
+      setLoadError(false);
+    } catch {
+      // Without this, a failed fetch left the page stuck on "Loading profile…" forever.
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -191,8 +199,22 @@ export default function OwnerProfile() {
     }
   };
 
-  if (loading || !form) {
+  if (loading) {
     return <p className="text-slate-400 text-sm">Loading profile…</p>;
+  }
+
+  if (loadError || !form) {
+    return (
+      <div>
+        <p className="text-sm text-red-600">Failed to load your profile.</p>
+        <button
+          onClick={load}
+          className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (

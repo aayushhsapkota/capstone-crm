@@ -48,18 +48,24 @@ export function ScrapeTrackerProvider({ children, onBatchComplete }) {
 
       await Promise.all(
         queryIds.map(async (queryId) => {
-          const ids = current[queryId];
-          const rows = await getQueryResultsStatus(ids);
-          const stillPending = rows.some((r) => !r.scrapedAt && !r.flagged);
-          if (stillPending) return;
+          try {
+            const ids = current[queryId];
+            const rows = await getQueryResultsStatus(ids);
+            const stillPending = rows.some((r) => !r.scrapedAt && !r.flagged);
+            if (stillPending) return;
 
-          setBatches((prev) => {
-            const next = { ...prev };
-            delete next[queryId];
-            return next;
-          });
-          const failedCount = rows.filter((r) => r.flagged).length;
-          onCompleteRef.current?.(queryId, failedCount);
+            setBatches((prev) => {
+              const next = { ...prev };
+              delete next[queryId];
+              return next;
+            });
+            const failedCount = rows.filter((r) => r.flagged).length;
+            onCompleteRef.current?.(queryId, failedCount);
+          } catch {
+            // A transient failure just leaves this batch pending for another tick —
+            // same self-healing pattern as the other background polls in this app.
+            // Without this, one bad tick threw an unhandled rejection every 5s.
+          }
         })
       );
     }, POLL_INTERVAL_MS);

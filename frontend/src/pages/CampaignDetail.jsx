@@ -12,7 +12,21 @@ const JOB_STATUS_STYLES = {
 
 export default function CampaignDetail() {
   const { id } = useParams();
-  const campaign = useCampaignProgress(id);
+  const { campaign, error, retry } = useCampaignProgress(id);
+
+  if (error) {
+    return (
+      <div>
+        <p className="text-sm text-red-600">Failed to load this campaign.</p>
+        <button
+          onClick={retry}
+          className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (!campaign) {
     return <p className="text-slate-400 text-sm">Loading campaign…</p>;

@@ -9,12 +9,16 @@ export default function BulkSendModal({ businessIds, onStart, onClose }) {
   const [offerId, setOfferId] = useState(null);
   const [delaySeconds, setDelaySeconds] = useState(30);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setError('');
     try {
       const result = await createCampaign({ name, businessIds, offerId, delaySeconds });
       onStart(result);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to start campaign. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -56,6 +60,12 @@ export default function BulkSendModal({ businessIds, onStart, onClose }) {
             ))}
           </select>
         </div>
+
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {error}
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-2">
           <button

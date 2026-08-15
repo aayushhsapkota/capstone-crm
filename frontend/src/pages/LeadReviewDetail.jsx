@@ -62,6 +62,7 @@ export default function LeadReviewDetail({ queryId }) {
   const [showFlagged, setShowFlagged] = useState(searchParams.get('showFlagged') === 'true');
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  const [resultsError, setResultsError] = useState(false);
   const [scraping, setScraping] = useState(false);
   const [excludingId, setExcludingId] = useState(null);
   const [toast, showToast] = useToast();
@@ -88,12 +89,20 @@ export default function LeadReviewDetail({ queryId }) {
   const fetchResults = useCallback(
     async (targetPage = page) => {
       setLoading(true);
-      const data = await getQueryResults({ queryId, page: targetPage, pageSize: PAGE_SIZE, includeFlagged: showFlagged });
-      setResults(data.results);
-      setTotal(data.total);
-      setPage(data.page);
-      setSelectedIds(new Set());
-      setLoading(false);
+      try {
+        const data = await getQueryResults({ queryId, page: targetPage, pageSize: PAGE_SIZE, includeFlagged: showFlagged });
+        setResults(data.results);
+        setTotal(data.total);
+        setPage(data.page);
+        setSelectedIds(new Set());
+        setResultsError(false);
+      } catch {
+        // Without this, a failed fetch left the table stuck on "Loading results…"
+        // forever with no way out except navigating away and back.
+        setResultsError(true);
+      } finally {
+        setLoading(false);
+      }
     },
     [queryId, showFlagged] // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -161,15 +170,23 @@ export default function LeadReviewDetail({ queryId }) {
   };
 
   const handleFlag = async (id, flagReason) => {
-    await flagQueryResult(id, flagReason);
-    // Re-fetch rather than patch locally — flagging can remove this row from the
-    // current filtered/paginated view entirely (e.g. when "Show flagged" is off).
-    await fetchResults(page);
+    try {
+      await flagQueryResult(id, flagReason);
+      // Re-fetch rather than patch locally — flagging can remove this row from the
+      // current filtered/paginated view entirely (e.g. when "Show flagged" is off).
+      await fetchResults(page);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to flag this lead. Please try again.', 'error');
+    }
   };
 
   const handleUnflag = async (id) => {
-    await unflagQueryResult(id);
-    await fetchResults(page);
+    try {
+      await unflagQueryResult(id);
+      await fetchResults(page);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to unflag this lead. Please try again.', 'error');
+    }
   };
 
   const handleExcludeDomain = async (id, url) => {
@@ -318,6 +335,16 @@ export default function LeadReviewDetail({ queryId }) {
       <div className="mt-6">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading results…</p>
+        ) : resultsError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load leads.</p>
+            <button
+              onClick={() => fetchResults(page)}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : results.length === 0 ? (
           <p className="text-slate-400 text-sm">
             {showFlagged ? 'No leads at all for this query.' : 'No leads to review — try "Show flagged".'}

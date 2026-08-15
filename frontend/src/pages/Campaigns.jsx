@@ -6,13 +6,22 @@ import CampaignProgress from '../components/CampaignProgress.jsx';
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await getCampaigns();
-    setCampaigns(data);
-    setLoading(false);
+    try {
+      const data = await getCampaigns();
+      setCampaigns(data);
+      setLoadError(false);
+    } catch {
+      // Without this, a failed fetch left the page stuck on "Loading campaigns…"
+      // forever with no way out except navigating away and back.
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -40,6 +49,16 @@ export default function Campaigns() {
       <div className="mt-6 space-y-3">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading campaigns…</p>
+        ) : loadError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load campaigns.</p>
+            <button
+              onClick={load}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : campaigns.length === 0 ? (
           <p className="text-slate-400 text-sm">No campaigns yet.</p>
         ) : (

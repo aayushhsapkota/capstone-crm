@@ -20,13 +20,21 @@ export default function Offers() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState(false);
   const imageFieldRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await getOffers();
-    setOffers(data);
-    setLoading(false);
+    try {
+      const data = await getOffers();
+      setOffers(data);
+      setLoadError(false);
+    } catch {
+      // Without this, a failed fetch left the page stuck on "Loading offers…" forever.
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -221,6 +229,16 @@ export default function Offers() {
       <div className="mt-6">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading offers…</p>
+        ) : loadError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load offers.</p>
+            <button
+              onClick={load}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : offers.length === 0 ? (
           <p className="text-slate-400 text-sm">No offers yet.</p>
         ) : (

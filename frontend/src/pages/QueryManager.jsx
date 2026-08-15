@@ -19,13 +19,21 @@ export default function QueryManager() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
   const pollIntervalRef = useRef(null);
 
+  // Never throws — used by both the initial mount load and the 5s poll, which need to
+  // react to a failure very differently (see call sites below). Returns null on failure
+  // so callers can tell the two cases apart without a try/catch of their own.
   const fetchQueries = async () => {
-    const data = await getQueries();
-    setQueries(data);
-    return data;
+    try {
+      const data = await getQueries();
+      setQueries(data);
+      return data;
+    } catch {
+      return null;
+    }
   };
 
   // n8n reports a query's real outcome (COMPLETE/FAILED) back to the server
@@ -40,6 +48,10 @@ export default function QueryManager() {
     if (pollIntervalRef.current) return;
     pollIntervalRef.current = setInterval(async () => {
       const data = await fetchQueries();
+      // A transient failure here just means this tick didn't update anything — leave
+      // the interval running rather than getting stuck one way or the other, same as
+      // useNotifications' background poll.
+      if (!data) return;
       const stillPending = data.some((q) => q.status === 'RUNNING' || q.status === 'PENDING');
       // Self-stopping: once nothing is left to wait on, clear the interval rather than
       // polling forever in the background for no reason.
@@ -50,24 +62,33 @@ export default function QueryManager() {
     }, 5000);
   };
 
+  const loadInitial = async () => {
+    setLoading(true);
+    const data = await fetchQueries();
+    setLoading(false);
+    if (!data) {
+      // Unlike the poll above, this is the very first load — without this, the page
+      // was stuck on "Loading history…" forever with no indication anything failed.
+      setLoadError(true);
+      return;
+    }
+    setLoadError(false);
+    // Only start polling if the list we just loaded actually has something in
+    // flight — e.g. a query kicked off in a previous session/tab that hasn't
+    // resolved yet. A page full of COMPLETE/FAILED queries has nothing to wait on.
+    const hasPending = data.some((q) => q.status === 'RUNNING' || q.status === 'PENDING');
+    if (hasPending) startPolling();
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data = await fetchQueries();
-      setLoading(false);
-      // Only start polling if the list we just loaded actually has something in
-      // flight — e.g. a query kicked off in a previous session/tab that hasn't
-      // resolved yet. A page full of COMPLETE/FAILED queries has nothing to wait on.
-      const hasPending = data.some((q) => q.status === 'RUNNING' || q.status === 'PENDING');
-      if (hasPending) startPolling();
-    })();
+    loadInitial();
 
     // Stop polling if the user navigates away mid-search, so it doesn't keep firing
     // requests for a component that's no longer on screen.
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -131,6 +152,16 @@ export default function QueryManager() {
       <div className="mt-8">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading history…</p>
+        ) : loadError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load query history.</p>
+            <button
+              onClick={loadInitial}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : queries.length === 0 ? (
           <p className="text-slate-400 text-sm">No queries yet.</p>
         ) : (

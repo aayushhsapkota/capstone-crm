@@ -159,17 +159,31 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
   const final = await prisma.bulkCampaign.findUnique({ where: { id: campaignId } });
   const finalStatus = final.failedCount > 0 ? 'PARTIAL_FAIL' : 'COMPLETE';
 
-  await prisma.bulkCampaign.update({
-    where: { id: campaignId },
-    data: { status: finalStatus, completedAt: new Date() },
-  });
+  // These two are independent try/catches, not one — this whole function only ever
+  // runs detached (`.catch(console.error)` at the call site), so a failure in either
+  // step would otherwise be silently swallowed with no trace. Splitting them means a
+  // notification-creation failure can't also prevent the status update that unblocks
+  // CampaignDetail's poll — leaving the campaign stuck showing RUNNING forever is the
+  // worse of the two failure modes.
+  try {
+    await prisma.bulkCampaign.update({
+      where: { id: campaignId },
+      data: { status: finalStatus, completedAt: new Date() },
+    });
+  } catch (err) {
+    console.error(`Failed to finalize campaign ${campaignId} status:`, err);
+  }
 
-  await prisma.notification.create({
-    data: {
-      type: 'CAMPAIGN_COMPLETE',
-      message: `Campaign "${final.name || campaignId}" finished — ${final.sentCount} sent, ${final.failedCount} failed, ${final.skippedCount} skipped.`,
-    },
-  });
+  try {
+    await prisma.notification.create({
+      data: {
+        type: 'CAMPAIGN_COMPLETE',
+        message: `Campaign "${final.name || campaignId}" finished — ${final.sentCount} sent, ${final.failedCount} failed, ${final.skippedCount} skipped.`,
+      },
+    });
+  } catch (err) {
+    console.error(`Failed to create completion notification for campaign ${campaignId}:`, err);
+  }
 }
 
 export default router;

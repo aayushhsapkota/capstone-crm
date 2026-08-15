@@ -6,6 +6,7 @@ const POLL_INTERVAL_MS = 30000;
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState('');
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -26,17 +27,43 @@ export function useNotifications() {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  const markAsRead = useCallback(async (ids) => {
-    setNotifications((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)));
-    await markNotificationsRead({ ids });
-  }, []);
+  const markAsRead = useCallback(
+    async (ids) => {
+      setActionError('');
+      setNotifications((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)));
+      try {
+        await markNotificationsRead({ ids });
+      } catch {
+        // The optimistic update above already marked it read locally — without this,
+        // a failed request left the UI lying about server state until the next 30s
+        // poll silently corrected it. Re-fetching resyncs immediately instead.
+        setActionError('Failed to update — try again.');
+        fetchNotifications();
+      }
+    },
+    [fetchNotifications]
+  );
 
   const markAllAsRead = useCallback(async () => {
+    setActionError('');
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    await markNotificationsRead({ all: true });
-  }, []);
+    try {
+      await markNotificationsRead({ all: true });
+    } catch {
+      setActionError('Failed to update — try again.');
+      fetchNotifications();
+    }
+  }, [fetchNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  return { notifications, unreadCount, loading, markAsRead, markAllAsRead, refetch: fetchNotifications };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    actionError,
+    markAsRead,
+    markAllAsRead,
+    refetch: fetchNotifications,
+  };
 }

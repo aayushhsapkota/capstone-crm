@@ -24,7 +24,7 @@ function timeAgo(dateString) {
 }
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, actionError, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -76,6 +76,12 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
+
+          {actionError && (
+            <div className="px-4 py-2 text-xs text-red-600 bg-red-50 border-b border-red-200">
+              {actionError}
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto">
             {notifications.length === 0 ? (

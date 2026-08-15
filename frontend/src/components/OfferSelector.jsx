@@ -5,7 +5,11 @@ export default function OfferSelector({ value, onChange }) {
   const [offers, setOffers] = useState([]);
 
   useEffect(() => {
-    getOffers().then(setOffers);
+    // Degrades gracefully either way — the dropdown just stays at "No offer" — so this
+    // only needs to stop it from being an unhandled rejection in the console.
+    getOffers()
+      .then(setOffers)
+      .catch((err) => console.error('Failed to load offers for selector:', err));
   }, []);
 
   return (

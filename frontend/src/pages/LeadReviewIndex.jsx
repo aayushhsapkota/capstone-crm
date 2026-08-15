@@ -8,14 +8,24 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 export default function LeadReviewIndex() {
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
   const { batches } = useScrapeTracker();
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
-    const data = await getQueries();
-    setQueries(data);
-    if (!silent) setLoading(false);
+    try {
+      const data = await getQueries();
+      setQueries(data);
+      setLoadError(false);
+    } catch {
+      // A silent (background) refresh failing just leaves the table showing whatever
+      // it last had — reasonable, no reason to disrupt the page for that. The initial
+      // load failing is different: without this, it stayed stuck on "Loading…" forever.
+      if (!silent) setLoadError(true);
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -43,6 +53,16 @@ export default function LeadReviewIndex() {
       <div className="mt-6">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading…</p>
+        ) : loadError ? (
+          <div>
+            <p className="text-sm text-red-600">Failed to load searches.</p>
+            <button
+              onClick={() => load()}
+              className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : queries.length === 0 ? (
           <p className="text-slate-400 text-sm">
             No searches yet — run one in Query Manager to find new leads.
