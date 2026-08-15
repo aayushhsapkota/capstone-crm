@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import OfferSelector from './OfferSelector.jsx';
 import { createCampaign } from '../api/campaigns.js';
+import { useCampaignTracker } from '../context/CampaignTracker.jsx';
 
-const DELAY_OPTIONS = [15, 30, 60];
+const DELAY_OPTIONS = [1, 3, 5];
 
 export default function BulkSendModal({ businessIds, onStart, onClose }) {
   const [name, setName] = useState('');
   const [offerId, setOfferId] = useState(null);
-  const [delaySeconds, setDelaySeconds] = useState(30);
+  const [delaySeconds, setDelaySeconds] = useState(3);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const { trackCampaign } = useCampaignTracker();
 
   const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
     try {
       const result = await createCampaign({ name, businessIds, offerId, delaySeconds });
+      trackCampaign(result.campaignId);
       onStart(result);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to start campaign. Please try again.');

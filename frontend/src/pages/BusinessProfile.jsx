@@ -40,31 +40,39 @@ export default function BusinessProfile() {
   const [saveError, setSaveError] = useState('');
   const [loadError, setLoadError] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const business = await getBusiness(id);
-      const initialForm = {};
-      FIELDS.forEach(({ key }) => {
-        initialForm[key] = business[key] ?? '';
-      });
-      setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl, scrapedAt: business.scrapedAt });
-      setAttrRows(
-        Object.entries(business.customAttrs || {}).map(([key, value]) => ({
-          _id: rowKey++,
-          key,
-          value: value ?? '',
-        }))
-      );
-      setLoadError(false);
-    } catch {
-      // Without this, a failed fetch left the page stuck on "Loading business…"
-      // forever with no way out except navigating away and back.
-      setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const load = useCallback(
+    async (silent = false) => {
+      // silent=true is for the refetch right after a successful save — toggling
+      // `loading` there replaces the whole form with a one-line "Loading business…"
+      // paragraph for a moment, which collapses the page's height and makes the
+      // browser snap the scroll position to the top. Not needed for a page that's
+      // already fully loaded and just needs its data refreshed in place.
+      if (!silent) setLoading(true);
+      try {
+        const business = await getBusiness(id);
+        const initialForm = {};
+        FIELDS.forEach(({ key }) => {
+          initialForm[key] = business[key] ?? '';
+        });
+        setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl, scrapedAt: business.scrapedAt });
+        setAttrRows(
+          Object.entries(business.customAttrs || {}).map(([key, value]) => ({
+            _id: rowKey++,
+            key,
+            value: value ?? '',
+          }))
+        );
+        setLoadError(false);
+      } catch {
+        // Without this, a failed fetch left the page stuck on "Loading business…"
+        // forever with no way out except navigating away and back.
+        if (!silent) setLoadError(true);
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [id]
+  );
 
   useEffect(() => {
     load();
@@ -106,7 +114,7 @@ export default function BusinessProfile() {
 
       await updateBusiness(id, patch);
       setMessage('Saved.');
-      await load();
+      await load(true);
       setTimeout(() => setMessage(''), 2000);
     } catch (err) {
       // Previously uncaught — a failed save (e.g. a duplicate email hitting the
@@ -140,8 +148,8 @@ export default function BusinessProfile() {
 
   return (
     <div className="max-w-3xl">
-      <Link to="/console" className="text-sm text-blue-600 hover:underline">
-        ← Back to Console
+      <Link to={`/console?businessId=${id}`} className="text-sm text-blue-600 hover:underline">
+        ← Back to email composer
       </Link>
 
       <div className="flex items-center gap-4 mt-3">

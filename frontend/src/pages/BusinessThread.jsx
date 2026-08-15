@@ -74,11 +74,6 @@ export default function BusinessThread({ businessId }) {
           <Link to={`/businesses/${business.id}`} className="text-xs text-blue-600 hover:underline">
             Edit profile
           </Link>
-          {business.unsubscribed && (
-            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
-              Unsubscribed
-            </span>
-          )}
         </div>
         <StatusBadge status={business.status} onChange={handleStatusChange} />
       </div>

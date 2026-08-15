@@ -4,6 +4,7 @@ import NotificationBell from './NotificationBell.jsx';
 import Toast from './Toast.jsx';
 import { useToast } from '../hooks/useToast.js';
 import { ScrapeTrackerProvider } from '../context/ScrapeTracker.jsx';
+import { CampaignTrackerProvider } from '../context/CampaignTracker.jsx';
 
 export default function Layout({ children }) {
   const [toast, showToast] = useToast();
@@ -22,18 +23,37 @@ export default function Layout({ children }) {
     [showToast]
   );
 
+  // Same reasoning as scrape batches — fired globally so it still shows up after
+  // navigating away from wherever the campaign was started.
+  const handleCampaignComplete = useCallback(
+    (campaign) => {
+      const label = campaign.name || 'Campaign';
+      if (campaign.status === 'PARTIAL_FAIL') {
+        showToast(
+          `${label} finished — ${campaign.sentCount} sent, ${campaign.failedCount} failed.`,
+          'error'
+        );
+      } else {
+        showToast(`${label} finished — ${campaign.sentCount} sent.`);
+      }
+    },
+    [showToast]
+  );
+
   return (
     <ScrapeTrackerProvider onBatchComplete={handleBatchComplete}>
-      <div className="flex min-h-screen bg-slate-50">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="flex items-center justify-end px-6 py-3 bg-white border-b border-slate-200">
-            <NotificationBell />
-          </header>
-          <main className="flex-1 p-6">{children}</main>
+      <CampaignTrackerProvider onCampaignComplete={handleCampaignComplete}>
+        <div className="flex min-h-screen bg-slate-50">
+          <Sidebar />
+          <div className="flex-1 flex flex-col">
+            <header className="flex items-center justify-end px-6 py-3 bg-white border-b border-slate-200">
+              <NotificationBell />
+            </header>
+            <main className="flex-1 p-6">{children}</main>
+          </div>
         </div>
-      </div>
-      <Toast toast={toast} />
+        <Toast toast={toast} />
+      </CampaignTrackerProvider>
     </ScrapeTrackerProvider>
   );
 }

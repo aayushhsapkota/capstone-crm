@@ -161,7 +161,16 @@ export default function BusinessesIndex() {
                       onChange={() => toggleChecked(b.id)}
                     />
                   </td>
-                  <td className="py-2 pr-4 text-slate-800">{b.name}</td>
+                  <td className="py-2 pr-4 text-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span>{b.name}</span>
+                      {b.unsubscribed && (
+                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full whitespace-nowrap">
+                          Unsubscribed
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="py-2 pr-4">
                     <span
                       className={`text-xs font-medium rounded-full px-2.5 py-1 whitespace-nowrap ${
