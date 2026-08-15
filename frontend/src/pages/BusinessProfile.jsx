@@ -18,6 +18,18 @@ const FIELDS = [
 
 let rowKey = 0;
 
+// The backend forwards Prisma's own error message verbatim (e.g. "Unique constraint
+// failed on the fields: (`email`)") — readable enough to debug, not to show a user.
+// This is currently the only case that can realistically happen here (email is the
+// only unique field on Business), so it's translated specifically rather than
+// generically parsed.
+function friendlySaveError(message) {
+  if (message?.includes('Unique constraint') && message?.includes('email')) {
+    return 'That email is already used by another business — each business needs a unique email.';
+  }
+  return message || 'Failed to save. Please try again.';
+}
+
 export default function BusinessProfile() {
   const { id } = useParams();
   const [form, setForm] = useState(null);
@@ -25,6 +37,7 @@ export default function BusinessProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,6 +81,7 @@ export default function BusinessProfile() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError('');
     try {
       const customAttrs = {};
       attrRows.forEach((row) => {
@@ -85,6 +99,11 @@ export default function BusinessProfile() {
       setMessage('Saved.');
       await load();
       setTimeout(() => setMessage(''), 2000);
+    } catch (err) {
+      // Previously uncaught — a failed save (e.g. a duplicate email hitting the
+      // unique constraint) looked exactly like "nothing happens": no error shown,
+      // the form just sat there with your edits still in it.
+      setSaveError(friendlySaveError(err.response?.data?.error));
     } finally {
       setSaving(false);
     }
@@ -181,6 +200,12 @@ export default function BusinessProfile() {
           )}
         </div>
       </div>
+
+      {saveError && (
+        <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {saveError}
+        </div>
+      )}
 
       <div className="mt-8 flex items-center gap-3">
         <button
