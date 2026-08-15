@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-const DEFAULT_DURATION_MS = 3000;
+const DEFAULT_DURATION_MS = 4000;
 
 // A fixed-position notification that doesn't require scrolling to see, unlike a
 // banner rendered at the top of a page — useful on pages with a long or paginated

@@ -7,7 +7,7 @@ export default function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div
-      className={`fixed bottom-4 right-4 text-sm px-4 py-2 rounded-md shadow-lg z-50 ${TYPE_STYLES[toast.type] ?? TYPE_STYLES.success}`}
+      className={`fixed bottom-4 right-4 text-base px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${TYPE_STYLES[toast.type] ?? TYPE_STYLES.success}`}
     >
       {toast.message}
     </div>

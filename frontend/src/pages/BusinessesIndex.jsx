@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBusinesses } from '../api/businesses.js';
 import BulkSendModal from '../components/BulkSendModal.jsx';
@@ -24,11 +24,17 @@ export default function BusinessesIndex() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState(new Set());
+  // True once "Select all N businesses" (across every page) has been used — distinct
+  // from just having every row on the current page checked, since that's still only
+  // this page's worth of ids.
+  const [selectAllMatching, setSelectAllMatching] = useState(false);
+  const [selectingAll, setSelectingAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [campaignMessage, setCampaignMessage] = useState('');
   const navigate = useNavigate();
+  const selectAllRef = useRef(null);
 
   const fetchBusinesses = useCallback(
     async (targetPage = page) => {
@@ -44,6 +50,7 @@ export default function BusinessesIndex() {
         // Scoped to the page actually loaded — a business checked before changing page
         // or filter shouldn't silently carry into a bulk send it's no longer visible in.
         setCheckedIds(new Set());
+        setSelectAllMatching(false);
         setLoadError(false);
       } catch {
         // Without this, a failed fetch (initial load or Previous/Next) left the table
@@ -70,6 +77,10 @@ export default function BusinessesIndex() {
   };
 
   const toggleChecked = (id) => {
+    // Unchecking any single row means the selection is no longer "every matching
+    // business" — fall back to plain per-id tracking rather than pretending the
+    // rest of the matches are still included.
+    setSelectAllMatching(false);
     setCheckedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -78,9 +89,53 @@ export default function BusinessesIndex() {
     });
   };
 
+  const allOnPageChecked = businesses.length > 0 && businesses.every((b) => checkedIds.has(b.id));
+  const someOnPageChecked = checkedIds.size > 0 && !allOnPageChecked;
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someOnPageChecked;
+  }, [someOnPageChecked]);
+
+  const toggleSelectAllOnPage = () => {
+    setSelectAllMatching(false);
+    setCheckedIds((prev) => {
+      if (allOnPageChecked) {
+        const next = new Set(prev);
+        businesses.forEach((b) => next.delete(b.id));
+        return next;
+      }
+      return new Set([...prev, ...businesses.map((b) => b.id)]);
+    });
+  };
+
+  // Fetches every id matching the current search/status filter, not just the page
+  // that's currently loaded — reuses the same list endpoint with a limit covering the
+  // full result set, since a one-off "select all" click doesn't need pagination.
+  const handleSelectAllMatching = async () => {
+    setSelectingAll(true);
+    try {
+      const params = { page: 1, limit: total };
+      if (search) params.search = search;
+      if (statusFilter) params.status = statusFilter;
+      const data = await getBusinesses(params);
+      setCheckedIds(new Set(data.businesses.map((b) => b.id)));
+      setSelectAllMatching(true);
+    } catch {
+      // Leaves the current page-scoped selection intact — the user can just try
+      // again, same as any other retryable action in this app.
+    } finally {
+      setSelectingAll(false);
+    }
+  };
+
+  const clearSelection = () => {
+    setCheckedIds(new Set());
+    setSelectAllMatching(false);
+  };
+
   const handleCampaignStarted = (result) => {
     setShowBulkModal(false);
-    setCheckedIds(new Set());
+    clearSelection();
     setCampaignMessage(`Campaign started — ${result.totalCount} businesses queued.`);
     setTimeout(() => setCampaignMessage(''), 4000);
   };
@@ -120,6 +175,29 @@ export default function BusinessesIndex() {
         )}
       </div>
 
+      {/* Only worth offering once every row on the page is checked and there's
+          actually more elsewhere — otherwise "select all" already means all of it. */}
+      {allOnPageChecked && total > businesses.length && !selectAllMatching && (
+        <p className="mt-2 text-xs text-slate-500">
+          All {businesses.length} on this page are selected.{' '}
+          <button
+            onClick={handleSelectAllMatching}
+            disabled={selectingAll}
+            className="text-blue-600 hover:underline disabled:opacity-50"
+          >
+            {selectingAll ? 'Selecting…' : `Select all ${total} matching businesses`}
+          </button>
+        </p>
+      )}
+      {selectAllMatching && (
+        <p className="mt-2 text-xs text-slate-500">
+          All {checkedIds.size} matching businesses are selected.{' '}
+          <button onClick={clearSelection} className="text-blue-600 hover:underline">
+            Clear selection
+          </button>
+        </p>
+      )}
+
       <div className="mt-4">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading…</p>
@@ -139,7 +217,15 @@ export default function BusinessesIndex() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-4 font-medium w-8"></th>
+                <th className="py-2 pr-4 font-medium w-8">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    checked={allOnPageChecked}
+                    onChange={toggleSelectAllOnPage}
+                    aria-label="Select all on this page"
+                  />
+                </th>
                 <th className="py-2 pr-4 font-medium">Name</th>
                 <th className="py-2 pr-4 font-medium">Status</th>
                 <th className="py-2 pr-4 font-medium">Location</th>

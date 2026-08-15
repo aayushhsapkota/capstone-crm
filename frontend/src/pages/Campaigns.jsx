@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCampaigns } from '../api/campaigns.js';
 import CampaignProgress from '../components/CampaignProgress.jsx';
+import { useCampaignTracker } from '../context/CampaignTracker.jsx';
 
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
+  const { runningIds } = useCampaignTracker();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await getCampaigns();
       setCampaigns(data);
@@ -18,15 +20,27 @@ export default function Campaigns() {
     } catch {
       // Without this, a failed fetch left the page stuck on "Loading campaigns…"
       // forever with no way out except navigating away and back.
-      setLoadError(true);
+      if (!silent) setLoadError(true);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // A tracked campaign leaving runningIds is the cue that it just finished — refetch
+  // so this list updates while you're actually looking at it, instead of only ever
+  // refreshing on mount (previously you had to navigate away and back to see it).
+  // Silent so the list doesn't collapse to "Loading campaigns…" for what's otherwise
+  // a background update — same reasoning as the scroll-jump fix on BusinessProfile.
+  const prevRunningIdsRef = useRef(new Set());
+  useEffect(() => {
+    const hadCompletion = [...prevRunningIdsRef.current].some((id) => !runningIds.has(id));
+    if (hadCompletion) load(true);
+    prevRunningIdsRef.current = runningIds;
+  }, [runningIds, load]);
 
   return (
     <div className="max-w-3xl">
@@ -53,7 +67,7 @@ export default function Campaigns() {
           <div>
             <p className="text-sm text-red-600">Failed to load campaigns.</p>
             <button
-              onClick={load}
+              onClick={() => load()}
               className="mt-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
             >
               Retry
