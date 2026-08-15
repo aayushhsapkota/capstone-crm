@@ -61,7 +61,12 @@ export default function LeadReviewIndex() {
               {queries.map((q) => (
                 <tr
                   key={q.id}
-                  onClick={() => navigate(`/leads?queryId=${q.id}`)}
+                  onClick={() =>
+                    // Nothing pending means the default (unflagged) view would just be an
+                    // empty "no leads to review" page — go straight to flagged instead of
+                    // making the row click a dead end that still needs a manual toggle.
+                    navigate(`/leads?queryId=${q.id}${q.pendingLeadsCount === 0 ? '&showFlagged=true' : ''}`)
+                  }
                   className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
                 >
                   <td className="py-2 pr-4 text-slate-800">{q.text}</td>

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/console', label: 'Console' },
+  { to: '/console', label: 'Businesses' },
   { to: '/queries', label: 'Query Manager' },
   { to: '/leads', label: 'Lead Review' },
   { to: '/campaigns', label: 'Campaigns' },

@@ -33,7 +33,7 @@ export default function BusinessProfile() {
     FIELDS.forEach(({ key }) => {
       initialForm[key] = business[key] ?? '';
     });
-    setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl });
+    setForm({ ...initialForm, id: business.id, imageUrl: business.imageUrl, scrapedAt: business.scrapedAt });
     setAttrRows(
       Object.entries(business.customAttrs || {}).map(([key, value]) => ({
         _id: rowKey++,
@@ -114,7 +114,14 @@ export default function BusinessProfile() {
             {form.name?.[0]?.toUpperCase() || '?'}
           </div>
         )}
-        <h1 className="text-2xl font-semibold text-slate-800">{form.name || 'Business Profile'}</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800">{form.name || 'Business Profile'}</h1>
+          {form.scrapedAt && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              Scraped {new Date(form.scrapedAt).toLocaleString()}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4">

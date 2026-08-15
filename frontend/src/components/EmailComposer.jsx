@@ -1,20 +1,86 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import OfferSelector from './OfferSelector.jsx';
 import { generateEmail, sendEmail } from '../api/emails.js';
+import { getOwnerProfile } from '../api/ownerProfile.js';
+
+// A contentEditable div can render markup (tags, styling) with no leading/trailing
+// text, so a plain .trim() on the raw HTML string isn't a reliable "is this actually
+// empty" check — e.g. deleting everything typed often leaves the browser with
+// `<br>` or `<div><br></div>` behind rather than a true empty string.
+function isBodyEmpty(html) {
+  if (!html) return true;
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim().length === 0;
+}
 
 export default function EmailComposer({ businessId, onSent }) {
   const [draft, setDraft] = useState({ subject: '', bodyHtml: '' });
+  const [bodyEmpty, setBodyEmpty] = useState(true);
   const [offerId, setOfferId] = useState(null);
+  const [services, setServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState(new Set());
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const editorRef = useRef(null);
+  const servicesRef = useRef(null);
+
+  // Loaded once — which services are on file at all, so they can be picked from when
+  // generating. All selected by default; unchecking one just leaves it out of this
+  // particular email rather than removing it from the owner profile.
+  useEffect(() => {
+    getOwnerProfile().then((profile) => {
+      const names = (profile.services || [])
+        .map((s) => (typeof s === 'string' ? s : s.service))
+        .filter(Boolean);
+      setServices(names);
+      setSelectedServices(new Set(names));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!servicesOpen) return;
+    const handleClickOutside = (e) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target)) setServicesOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [servicesOpen]);
+
+  const toggleService = (name) => {
+    setSelectedServices((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  // The editable div's DOM content is deliberately NOT synced from draft.bodyHtml via
+  // a useEffect on every render — contentEditable's DOM is mutated directly by the
+  // browser as you type, outside React's knowledge, and an effect racing that on every
+  // keystroke is what caused a real crash (React reconciling a ref mid-render). Instead,
+  // .innerHTML is only ever set imperatively at the two moments content should actually
+  // be replaced wholesale: right after generating, and clearing after a send.
+  const setEditorContent = (html) => {
+    if (editorRef.current) editorRef.current.innerHTML = html;
+    setBodyEmpty(isBodyEmpty(html));
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
     setError('');
     try {
-      const generated = await generateEmail({ businessId, offerId });
+      const generated = await generateEmail({
+        businessId,
+        offerId,
+        selectedServices: [...selectedServices],
+      });
       setDraft(generated);
+      setEditorContent(generated.bodyHtml);
     } catch (err) {
       // err.response.data.error is the real message the backend forwarded from n8n
       // (e.g. an LLM auth/rate-limit failure) — fall back to a generic message for
@@ -26,12 +92,13 @@ export default function EmailComposer({ businessId, onSent }) {
   };
 
   const handleSend = async () => {
-    if (!draft.subject.trim() || !draft.bodyHtml.trim()) return;
+    if (!draft.subject.trim() || bodyEmpty) return;
     setSending(true);
     setError('');
     try {
       await sendEmail({ businessId, subject: draft.subject, bodyHtml: draft.bodyHtml, offerId });
       setDraft({ subject: '', bodyHtml: '' });
+      setEditorContent('');
       onSent?.();
     } catch (err) {
       // Same pattern as handleGenerate — surfaces the real Gmail/n8n failure reason
@@ -40,6 +107,12 @@ export default function EmailComposer({ businessId, onSent }) {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleInput = (e) => {
+    const html = e.currentTarget.innerHTML;
+    setDraft((prev) => ({ ...prev, bodyHtml: html }));
+    setBodyEmpty(isBodyEmpty(html));
   };
 
   return (
@@ -56,16 +129,56 @@ export default function EmailComposer({ businessId, onSent }) {
         placeholder="Subject"
         className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
       />
-      <textarea
-        value={draft.bodyHtml}
-        onChange={(e) => setDraft((prev) => ({ ...prev, bodyHtml: e.target.value }))}
-        placeholder="Write your email…"
-        rows={5}
-        className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm resize-none"
-      />
+      <div className="relative">
+        {/* Always mounted — toggled with a CSS class rather than conditional JSX, so the
+            sibling contentEditable div's position in the tree never shifts on typing. */}
+        <p
+          className={`absolute top-2 left-3 text-sm text-slate-400 pointer-events-none ${
+            bodyEmpty ? '' : 'hidden'
+          }`}
+        >
+          Write your email…
+        </p>
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm prose-sm overflow-auto focus:outline-none focus:ring-1 focus:ring-slate-400"
+          style={{ minHeight: '7.5rem', maxHeight: '20rem' }}
+        />
+      </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <OfferSelector value={offerId} onChange={setOfferId} />
+          {services.length > 0 && (
+            <div className="relative" ref={servicesRef}>
+              <button
+                type="button"
+                onClick={() => setServicesOpen((prev) => !prev)}
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+              >
+                Services ({selectedServices.size}/{services.length})
+              </button>
+              {servicesOpen && (
+                <div className="absolute z-10 mt-1 w-64 bg-white border border-slate-200 rounded-md shadow-lg p-2 max-h-56 overflow-y-auto">
+                  {services.map((name) => (
+                    <label
+                      key={name}
+                      className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-slate-50 rounded-md cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedServices.has(name)}
+                        onChange={() => toggleService(name)}
+                      />
+                      {name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <button
             onClick={handleGenerate}
             disabled={generating}
@@ -76,7 +189,7 @@ export default function EmailComposer({ businessId, onSent }) {
         </div>
         <button
           onClick={handleSend}
-          disabled={sending || !draft.subject.trim() || !draft.bodyHtml.trim()}
+          disabled={sending || !draft.subject.trim() || bodyEmpty}
           className="px-4 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700 disabled:opacity-50"
         >
           {sending ? 'Sending…' : 'Send'}

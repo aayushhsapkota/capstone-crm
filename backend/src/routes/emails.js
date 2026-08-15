@@ -21,7 +21,7 @@ router.get('/:businessId', async (req, res, next) => {
 // POST /api/emails/generate — returns draft, does NOT send
 router.post('/generate', async (req, res, next) => {
   try {
-    const { businessId, offerId } = req.body;
+    const { businessId, offerId, selectedServices } = req.body;
 
     const [business, offer, ownerProfile] = await Promise.all([
       prisma.business.findUniqueOrThrow({ where: { id: businessId } }),
@@ -33,6 +33,10 @@ router.post('/generate', async (req, res, next) => {
       business,
       offer,
       ownerProfile,
+      // Which of ownerProfile.services (by name) to actually feature in this specific
+      // email — lets the workflow build the services section from a subset rather than
+      // always every service on file. Omitted/undefined means "use all of them".
+      selectedServices,
     });
 
     // The generate-email workflow responds 200 with {subject, bodyHtml} on success,

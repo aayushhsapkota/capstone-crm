@@ -41,7 +41,10 @@ router.get('/:id', async (req, res, next) => {
     const business = await prisma.business.findUniqueOrThrow({
       where: { id: req.params.id },
       include: {
-        emails: { orderBy: { sentAt: 'asc' } },
+        // offer name lets the thread show what kind of email each SENT message was
+        // (a specific offer vs. a plain intro) — offerId alone isn't enough to render
+        // that without a second round trip.
+        emails: { orderBy: { sentAt: 'asc' }, include: { offer: { select: { name: true } } } },
         notifications: { orderBy: { createdAt: 'desc' }, take: 10 },
       },
     });

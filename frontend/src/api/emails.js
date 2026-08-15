@@ -5,8 +5,8 @@ export async function getEmails(businessId) {
   return data;
 }
 
-export async function generateEmail({ businessId, offerId }) {
-  const { data } = await client.post('/emails/generate', { businessId, offerId });
+export async function generateEmail({ businessId, offerId, selectedServices }) {
+  const { data } = await client.post('/emails/generate', { businessId, offerId, selectedServices });
   return data;
 }
 

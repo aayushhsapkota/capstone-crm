@@ -34,6 +34,13 @@ export default function ThreadView({ emails }) {
                 <span>{new Date(email.sentAt).toLocaleString()}</span>
               </div>
               <div className="text-sm font-medium mt-1">{email.subject}</div>
+              {/* Replies never have an offer selection to label — this is only
+                  meaningful for what we actually sent, not what came back. */}
+              {isSent && (
+                <div className="text-xs opacity-75 mt-0.5">
+                  {email.offer ? `Offer: ${email.offer.name}` : 'Intro email'}
+                </div>
+              )}
               {expanded && (
                 <div
                   className="text-sm mt-2 prose-sm"

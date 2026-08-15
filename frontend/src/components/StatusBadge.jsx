@@ -8,7 +8,7 @@ const STATUS_VALUES = [
   'CLOSED_LOST',
 ];
 
-const STATUS_STYLES = {
+export const STATUS_STYLES = {
   NEW: 'bg-slate-100 text-slate-700',
   EMAIL_SENT: 'bg-blue-100 text-blue-700',
   AWAITING_REPLY: 'bg-amber-100 text-amber-700',

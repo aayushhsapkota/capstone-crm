@@ -28,11 +28,19 @@ const AUTO_FLAG_LABELS = {
   SCRAPE_FIRECRAWL_REQUEST_ERROR: 'Scrape Failed (site unreachable)',
 };
 
+const SCRAPE_ERROR_PATTERN = /^SCRAPE_.*_ERROR$/;
+
+// True for a flag the scrape workflow applied itself (before a human ever saw the
+// lead), false for one a person picked from FLAG_REASONS.
+function isAutoFlag(flagReason) {
+  return SCRAPE_ERROR_PATTERN.test(flagReason);
+}
+
 function formatFlagReason(flagReason) {
   if (AUTO_FLAG_LABELS[flagReason]) return AUTO_FLAG_LABELS[flagReason];
   // Generic fallback for any future SCRAPE_*_ERROR sentinel that isn't explicitly
   // mapped above yet — still reads as "a scrape failure", not a raw error code.
-  if (/^SCRAPE_.*_ERROR$/.test(flagReason)) return 'Scrape Failed';
+  if (isAutoFlag(flagReason)) return 'Scrape Failed';
   return flagReason;
 }
 
@@ -303,6 +311,10 @@ export default function LeadReviewDetail({ queryId }) {
         </div>
       )}
 
+      {showFlagged && (
+        <p className="mt-2 text-xs text-slate-500">Showing flagged results only.</p>
+      )}
+
       <div className="mt-6">
         {loading ? (
           <p className="text-slate-400 text-sm">Loading results…</p>
@@ -332,11 +344,12 @@ export default function LeadReviewDetail({ queryId }) {
             </thead>
             <tbody>
               {results.map((r) => (
-                <tr
-                  key={r.id}
-                  className={`border-b border-slate-100 ${r.flagged ? 'opacity-40' : ''}`}
-                >
-                  <td className="py-2 pr-4">
+                <tr key={r.id} className="border-b border-slate-100">
+                  {/* Dimming lives on these individual cells rather than the whole row —
+                      opacity on the <tr> would cap the Flag column's action buttons at
+                      the same faded brightness, since a child can't render brighter than
+                      an ancestor's opacity allows. */}
+                  <td className={`py-2 pr-4 ${r.flagged ? 'opacity-40' : ''}`}>
                     <input
                       type="checkbox"
                       checked={selectedIds.has(r.id)}
@@ -344,8 +357,10 @@ export default function LeadReviewDetail({ queryId }) {
                       onChange={() => toggleSelected(r.id)}
                     />
                   </td>
-                  <td className="py-2 pr-4 text-slate-800">{r.businessName || '—'}</td>
-                  <td className="py-2 pr-4">
+                  <td className={`py-2 pr-4 text-slate-800 ${r.flagged ? 'opacity-40' : ''}`}>
+                    {r.businessName || '—'}
+                  </td>
+                  <td className={`py-2 pr-4 ${r.flagged ? 'opacity-40' : ''}`}>
                     <a
                       href={r.url}
                       target="_blank"
@@ -355,26 +370,37 @@ export default function LeadReviewDetail({ queryId }) {
                       {r.url}
                     </a>
                   </td>
-                  <td className="py-2 pr-4 text-slate-500">
+                  <td className={`py-2 pr-4 text-slate-500 ${r.flagged ? 'opacity-40' : ''}`}>
                     {new Date(r.createdAt).toLocaleDateString()}
                   </td>
                   <td className="py-2 pr-4">
                     {r.flagged ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">{formatFlagReason(r.flagReason)}</span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            isAutoFlag(r.flagReason) ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {formatFlagReason(r.flagReason)}
+                        </span>
                         <button
                           onClick={() => handleExcludeDomain(r.id, r.url)}
                           disabled={excludingId === r.id}
-                          className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+                          className="text-xs font-medium text-blue-700 hover:underline disabled:opacity-50"
                         >
                           {excludingId === r.id ? 'Excluding…' : '+ Exclude domain'}
                         </button>
-                        <button
-                          onClick={() => handleUnflag(r.id)}
-                          className="text-xs text-slate-400 hover:text-slate-700 hover:underline"
-                        >
-                          Unflag
-                        </button>
+                        {/* Auto-flags come from the scrape itself failing, not a human
+                            judgment call — there's nothing to "undo" here, unlike a
+                            manually-picked reason like Directory or Forum. */}
+                        {!isAutoFlag(r.flagReason) && (
+                          <button
+                            onClick={() => handleUnflag(r.id)}
+                            className="text-xs font-medium text-slate-600 hover:text-slate-900 hover:underline"
+                          >
+                            Unflag
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <select
