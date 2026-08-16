@@ -46,11 +46,15 @@ export default function IntegrationsSettings() {
   }, []);
 
   const handleDisconnect = async () => {
+    // Captured before disconnecting — gmail.email is about to be cleared from state,
+    // but the success message still needs to say which address just got disconnected.
+    const disconnectedEmail = gmail?.email;
     setDisconnecting(true);
     setBanner(null);
     try {
       await disconnectGmail();
       setGmail({ connected: false, email: null });
+      setBanner({ type: 'success', text: `Disconnected ${disconnectedEmail} successfully.` });
     } catch (err) {
       setBanner({ type: 'error', text: err.response?.data?.error || 'Failed to disconnect Gmail. Please try again.' });
     } finally {
