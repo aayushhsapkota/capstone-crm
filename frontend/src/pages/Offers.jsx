@@ -8,6 +8,7 @@ const EMPTY_FORM = {
   discountPercent: '',
   durationLabel: '',
   ctaText: '',
+  ctaUrl: '',
   bodyNotes: '',
   imageUrl: '',
 };
@@ -60,6 +61,7 @@ export default function Offers() {
       discountPercent: offer.discountPercent ?? '',
       durationLabel: offer.durationLabel || '',
       ctaText: offer.ctaText || '',
+      ctaUrl: offer.ctaUrl || '',
       bodyNotes: offer.bodyNotes || '',
       imageUrl: offer.imageUrl || '',
     });
@@ -86,6 +88,7 @@ export default function Offers() {
         discountPercent: form.discountPercent === '' ? null : Number(form.discountPercent),
         durationLabel: form.durationLabel.trim() || null,
         ctaText: form.ctaText.trim() || null,
+        ctaUrl: form.ctaUrl.trim() || null,
         bodyNotes: form.bodyNotes.trim() || null,
         imageUrl: imageUrl?.trim() || null,
       };
@@ -184,6 +187,16 @@ export default function Offers() {
                 value={form.ctaText}
                 onChange={(e) => handleFieldChange('ctaText', e.target.value)}
                 placeholder="e.g. Book a Free Consultation"
+                className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">CTA URL</label>
+              <input
+                type="text"
+                value={form.ctaUrl}
+                onChange={(e) => handleFieldChange('ctaUrl', e.target.value)}
+                placeholder="https://yourcompany.com/book"
                 className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
               />
             </div>

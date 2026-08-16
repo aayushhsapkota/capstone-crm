@@ -77,6 +77,7 @@ model Offer {
   discountPercent Int?
   durationLabel   String?
   ctaText         String?
+  ctaUrl          String?        // Link the CTA button/text should point to in offer emails
   bodyNotes       String?        // Extra context passed to AI when generating offer emails
   imageUrl        String?        // Header image shown in offer emails for this specific offer
   createdAt       DateTime       @default(now())
