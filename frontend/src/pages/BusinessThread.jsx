@@ -63,7 +63,7 @@ export default function BusinessThread({ businessId }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)]">
+    <div className="flex flex-col h-[calc(100vh-6rem)] min-w-0">
       <Link to="/console" className="text-sm text-blue-600 hover:underline">
         ← Back to Businesses
       </Link>

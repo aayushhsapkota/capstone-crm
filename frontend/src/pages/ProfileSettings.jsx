@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getOwnerProfile, saveOwnerProfile, scrapeOwnerProfileFromWebsite } from '../api/ownerProfile.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
 import { buildSignatureHtml } from '../lib/signatureTemplate.js';
+import { useOwnerProfile } from '../context/OwnerProfileContext.jsx';
 
 let rowKey = 0;
 
@@ -19,6 +20,7 @@ function isHtmlEmpty(html) {
 }
 
 export default function ProfileSettings() {
+  const { setProfile: setSharedProfile } = useOwnerProfile();
   const [form, setForm] = useState(null);
   const [serviceRows, setServiceRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,6 +191,10 @@ export default function ProfileSettings() {
         services,
       });
       setForm((prev) => ({ ...prev, id: updated.id, logoUrl: logoUrl || '', heroImageUrl: heroImageUrl || '' }));
+      // Pushes the fresh profile into the shared context so anything else reading it —
+      // right now, just the header avatar/name in ProfileMenu — updates immediately
+      // instead of staying stale until a full page reload re-runs its own fetch.
+      setSharedProfile(updated);
       setMessage('Saved.');
       setTimeout(() => setMessage(''), 2000);
     } catch (err) {

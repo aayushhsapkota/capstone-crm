@@ -10,7 +10,7 @@ const links = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-56 shrink-0 bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+    <aside className="w-56 shrink-0 bg-slate-900 text-slate-100 h-full flex flex-col overflow-y-auto">
       <div className="px-4 py-5 flex items-center gap-2.5 border-b border-slate-800">
         <img src="/logo.png" alt="" className="w-7 h-7 rounded-md shrink-0" />
         <span className="text-lg font-semibold">Capstone CRM</span>

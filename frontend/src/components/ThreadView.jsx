@@ -1,5 +1,14 @@
 import { useState } from 'react';
 
+function formatDateTime(dateString) {
+  return new Date(dateString).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export default function ThreadView({ emails }) {
   const [expandedIds, setExpandedIds] = useState(new Set());
 
@@ -17,37 +26,38 @@ export default function ThreadView({ emails }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto py-4 space-y-3">
+    <div className="flex-1 overflow-y-auto min-w-0 py-4 space-y-2">
       {emails.map((email) => {
         const isSent = email.direction === 'SENT';
         const expanded = expandedIds.has(email.id);
+        // Replies never have an offer selection to label — that's only meaningful for
+        // what we actually sent, not what came back.
+        const typeLabel = isSent ? (email.offer ? email.offer.name : 'Intro email') : null;
+
         return (
-          <div key={email.id} className={`flex ${isSent ? 'justify-end' : 'justify-start'}`}>
-            <div
+          <div key={email.id} className="min-w-0 border border-slate-200 rounded-lg bg-white overflow-hidden">
+            <button
+              type="button"
               onClick={() => toggleExpanded(email.id)}
-              className={`max-w-md rounded-lg px-4 py-2 cursor-pointer ${
-                isSent ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"
             >
-              <div className="flex items-center justify-between gap-4 text-xs opacity-75">
-                <span>{isSent ? 'You' : 'Them'}</span>
-                <span>{new Date(email.sentAt).toLocaleString()}</span>
-              </div>
-              <div className="text-sm font-medium mt-1">{email.subject}</div>
-              {/* Replies never have an offer selection to label — this is only
-                  meaningful for what we actually sent, not what came back. */}
-              {isSent && (
-                <div className="text-xs opacity-75 mt-0.5">
-                  {email.offer ? `Offer: ${email.offer.name}` : 'Intro email'}
+              <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{email.subject}</span>
+              <span className="shrink-0 text-xs text-slate-400 whitespace-nowrap">
+                {typeLabel && `${typeLabel} · `}
+                {formatDateTime(email.sentAt)}
+              </span>
+            </button>
+
+            {expanded && (
+              <div className="border-t border-slate-100 px-4 py-4">
+                {/* Email bodies can carry fixed-width HTML (our own templates use
+                    600px-wide tables) — overflow-x-auto keeps any overflow scoped to
+                    this one message's body instead of ever widening the thread or page. */}
+                <div className="text-sm max-w-full overflow-x-auto">
+                  <div className="prose-sm" dangerouslySetInnerHTML={{ __html: email.bodyHtml }} />
                 </div>
-              )}
-              {expanded && (
-                <div
-                  className="text-sm mt-2 prose-sm"
-                  dangerouslySetInnerHTML={{ __html: email.bodyHtml }}
-                />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
       })}

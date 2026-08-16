@@ -6,6 +6,7 @@ import Toast from './Toast.jsx';
 import { useToast } from '../hooks/useToast.js';
 import { ScrapeTrackerProvider } from '../context/ScrapeTracker.jsx';
 import { CampaignTrackerProvider } from '../context/CampaignTracker.jsx';
+import { OwnerProfileProvider } from '../context/OwnerProfileContext.jsx';
 
 export default function Layout({ children }) {
   const [toast, showToast] = useToast();
@@ -42,21 +43,26 @@ export default function Layout({ children }) {
   );
 
   return (
-    <ScrapeTrackerProvider onBatchComplete={handleBatchComplete}>
-      <CampaignTrackerProvider onCampaignComplete={handleCampaignComplete}>
-        <div className="flex min-h-screen bg-slate-50">
-          <Sidebar />
-          <div className="flex-1 flex flex-col">
-            <header className="flex items-center justify-end gap-3 px-6 py-3 bg-white border-b border-slate-200">
-              <NotificationBell />
-              <div className="w-px h-6 bg-slate-200" />
-              <ProfileMenu />
-            </header>
-            <main className="flex-1 p-6">{children}</main>
+    <OwnerProfileProvider>
+      <ScrapeTrackerProvider onBatchComplete={handleBatchComplete}>
+        <CampaignTrackerProvider onCampaignComplete={handleCampaignComplete}>
+          <div className="flex h-screen bg-slate-50 overflow-hidden">
+            <Sidebar />
+            {/* min-h-0 overrides flex's default min-height:auto on this column — without
+                it, main's overflow-y-auto can't actually kick in, since the column would
+                just grow to fit its content instead of clipping to the viewport height. */}
+            <div className="flex-1 flex flex-col min-h-0">
+              <header className="shrink-0 flex items-center justify-end gap-3 px-6 py-3 bg-white border-b border-slate-200">
+                <NotificationBell />
+                <div className="w-px h-6 bg-slate-200" />
+                <ProfileMenu />
+              </header>
+              <main className="flex-1 overflow-y-auto p-6">{children}</main>
+            </div>
           </div>
-        </div>
-        <Toast toast={toast} />
-      </CampaignTrackerProvider>
-    </ScrapeTrackerProvider>
+          <Toast toast={toast} />
+        </CampaignTrackerProvider>
+      </ScrapeTrackerProvider>
+    </OwnerProfileProvider>
   );
 }

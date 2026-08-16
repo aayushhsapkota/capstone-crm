@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOwnerProfile } from '../api/ownerProfile.js';
+import { useOwnerProfile } from '../context/OwnerProfileContext.jsx';
 import LogoutModal from './LogoutModal.jsx';
 
 function getInitials(name) {
@@ -60,17 +60,9 @@ function UserIcon() {
 export default function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const { profile } = useOwnerProfile();
   const containerRef = useRef(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // The avatar just falls back to a generic icon if this fails — nothing here is
-    // load-bearing enough to need a retry or error state of its own.
-    getOwnerProfile()
-      .then(setProfile)
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!open) return;

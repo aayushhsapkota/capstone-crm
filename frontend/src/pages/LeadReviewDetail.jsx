@@ -329,7 +329,7 @@ export default function LeadReviewDetail({ queryId }) {
       )}
 
       {showFlagged && (
-        <p className="mt-2 text-xs text-slate-500">Showing flagged results only.</p>
+        <p className="mt-2 text-xs text-slate-500">Showing all leads, including flagged ones.</p>
       )}
 
       <div className="mt-6">
