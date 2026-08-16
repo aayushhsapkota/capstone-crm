@@ -17,37 +17,37 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        -352,
-        992
+        64,
+        2288
       ],
-      "id": "9a18763f-f4f8-4094-9b6c-fb5b9428d42b",
+      "id": "a6e39172-9909-4d6c-82d5-267a357218e0",
       "name": "Email generation",
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "const emailGenResult = $('Email generation').first().json;\n\nif (emailGenResult.error) {\n  return [{\n    json: {\n      error: emailGenResult.error,\n      businessId: $('Generate Email Webhook').item.json.body.business.id\n    }\n  }];\n}\n\nconst raw = emailGenResult.text;\n\n// Strip the markdown fences first\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nconst parsed = JSON.parse(cleaned);\n\n// Use ALL services provided, not a fixed slice of 4\nconst allServices = $('Generate Email Webhook').item.json.body.ownerProfile?.services || [];\n// selectedServices is an array of service names picked in the composer's checklist —\n// undefined (e.g. a direct webhook call with no such field, like this workflow's own\n// pinned test data) falls back to using every service on file.\nconst selectedNames = $('Generate Email Webhook').item.json.body.selectedServices;\nconst services = Array.isArray(selectedNames)\n  ? allServices.filter((s) => selectedNames.includes(s.service))\n  : allServices;\n\n// Build the service cards HTML dynamically (2 per row, any number of services)\nfunction escapeHtml(str) {\n  return String(str || '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\nconst icons = ['⚙️', '🛡️', '📞', '☁️', '💡', '🔒', '📊', '🌐', '🩺', '💬'];\n\nfunction buildCard(item, icon) {\n  return `<td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n            <tr>\n                <td style=\"padding: 15px;\">\n                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                        <tr>\n                            <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                <span style=\"font-size: 20px; color: #007bff;\">${icon}</span>\n                            </td>\n                            <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                <strong style=\"font-size: 15px; line-height: 20px;\">${escapeHtml(item.service)}</strong>\n                                <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">${escapeHtml(item.description)}</p>\n                            </td>\n                        </tr>\n                    </table>\n                </td>\n            </tr>\n        </table>\n    </td>`;\n}\n\nlet servicesHtml = '';\nfor (let i = 0; i < services.length; i += 2) {\n  const left = services[i];\n  const right = services[i + 1];\n  servicesHtml += '<tr>';\n  servicesHtml += buildCard(left, icons[i % icons.length]);\n  servicesHtml += right\n    ? buildCard(right, icons[(i + 1) % icons.length])\n    : '<td class=\"service-column\" width=\"50%\">&nbsp;</td>';\n  servicesHtml += '</tr>';\n}\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    services,\n    servicesHtml,\n    email: parsed.email,\n    businessId: $('Generate Email Webhook').item.json.body.business.id,\n    servicesIntro: parsed.servicesIntro,\n    preheader: parsed.preheader\n  }\n}];"
+        "jsCode": "const emailGenResult = $('Email generation').first().json;\n\nif (emailGenResult.error) {\n  return [{\n    json: {\n      error: emailGenResult.error,\n      businessId: $('Generate Email Webhook').item.json.body.business.id\n    }\n  }];\n}\n\nconst raw = emailGenResult.text;\n\n// Strip the markdown fences first\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nconst parsed = JSON.parse(cleaned);\n\n// Use ALL services provided, not a fixed slice of 4\nconst allServices = $('Generate Email Webhook').item.json.body.ownerProfile?.services || [];\n// selectedServices is an array of service names picked in the composer's checklist —\n// undefined (e.g. a direct webhook call with no such field, like this workflow's own\n// pinned test data) falls back to using every service on file.\nconst selectedNames = $('Generate Email Webhook').item.json.body.selectedServices;\nconst services = Array.isArray(selectedNames)\n  ? allServices.filter((s) => selectedNames.includes(s.service))\n  : allServices;\n\n// Build the service cards HTML dynamically (2 per row, any number of services)\nfunction escapeHtml(str) {\n  return String(str || '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\nconst icons = ['⚙️', '🛡️', '📞', '☁️', '💡', '🔒', '📊', '🌐', '🩺', '💬'];\n\nfunction buildCard(item, icon) {\n  return `<td class=\"service-column\" width=\"50%\" align=\"center\" style=\"padding: 10px 10px; vertical-align: top;\">\n        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"background-color: #f7f9fc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">\n            <tr>\n                <td style=\"padding: 15px;\">\n                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                        <tr>\n                            <td width=\"30\" style=\"vertical-align: top; padding-right: 15px;\">\n                                <span style=\"font-size: 20px; color: #007bff;\">${icon}</span>\n                            </td>\n                            <td style=\"font-family: Arial, sans-serif; color: #333333; text-align: left;\">\n                                <strong style=\"font-size: 15px; line-height: 20px;\">${escapeHtml(item.service)}</strong>\n                                <p style=\"font-size: 13px; line-height: 18px; color: #555555; margin: 4px 0 0 0;\">${escapeHtml(item.description)}</p>\n                            </td>\n                        </tr>\n                    </table>\n                </td>\n            </tr>\n        </table>\n    </td>`;\n}\n\nlet servicesHtml = '';\nfor (let i = 0; i < services.length; i += 2) {\n  const left = services[i];\n  const right = services[i + 1];\n  servicesHtml += '<tr>';\n  servicesHtml += buildCard(left, icons[i % icons.length]);\n  servicesHtml += right\n    ? buildCard(right, icons[(i + 1) % icons.length])\n    : '<td class=\"service-column\" width=\"50%\">&nbsp;</td>';\n  servicesHtml += '</tr>';\n}\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    services,\n    servicesHtml,\n    email: parsed.email,\n    businessId: $('Generate Email Webhook').item.json.body.business.id,\n    servicesIntro: parsed.servicesIntro,\n    preheader: parsed.preheader,\n    ctaUrl:$('Generate Email Webhook').first().json.body.ownerProfile.website\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        992
+        480,
+        2288
       ],
-      "id": "e442a37f-860b-45da-b884-d50035085e04",
+      "id": "39dadb0c-d569-495b-a807-4576d70142a7",
       "name": "Parsing Data"
     },
     {
       "parameters": {
-        "jsCode": "const genResult = $('Offer Generation').first().json;\n\nif (genResult.error) {\n  return [{\n    json: {\n      error: genResult.error,\n      businessId: $('Generate Email Webhook').item.json.body.business.id\n    }\n  }];\n}\n\nconst raw = genResult.text;\n\n// Step 1: Remove the ```json at the start and ``` at the end\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')   // Remove opening ```json\n  .replace(/```\\s*$/i, '')       // Remove closing ```\n  .trim();                        // Remove any extra whitespace\n\n// Step 2: Now it's safe to parse\nconst parsed = JSON.parse(cleaned);\n\n// Strip any % the LLM may have added — the HTML template appends its own\nconst discountPercentage = String(parsed.Percentage).replace(/%/g, '').trim();\n\n// Use ALL services provided, not a fixed slice of 4\nconst allServices = $('Generate Email Webhook').item.json.body.ownerProfile?.services || [];\n// selectedServices is an array of service names picked in the composer's checklist —\n// undefined (e.g. a direct webhook call with no such field, like this workflow's own\n// pinned test data) falls back to using every service on file.\nconst selectedNames = $('Generate Email Webhook').item.json.body.selectedServices;\nconst services = Array.isArray(selectedNames)\n  ? allServices.filter((s) => selectedNames.includes(s.service))\n  : allServices;\n\n// Build the service cards HTML dynamically (2 per row, any number of services)\nfunction escapeHtml(str) {\n  return String(str || '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\nconst icons = ['⚙️', '🛡️', '📞', '☁️', '💡', '🔒', '📊', '🌐', '🩺', '💬'];\n\nfunction buildCard(item, icon, isLeft) {\n  const sidePadding = isLeft ? 'padding-right: 10px;' : 'padding-left: 10px;';\n  return `<td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"${sidePadding} padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ${icon} ${escapeHtml(item.service)}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                ${escapeHtml(item.description)}\n                                                            </p>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>`;\n}\n\nlet servicesHtml = '';\nfor (let i = 0; i < services.length; i += 2) {\n  const left = services[i];\n  const right = services[i + 1];\n  servicesHtml += '<tr>';\n  servicesHtml += buildCard(left, icons[i % icons.length], true);\n  servicesHtml += right\n    ? buildCard(right, icons[(i + 1) % icons.length], false)\n    : '<td class=\"stack-col\" width=\"50%\">&nbsp;</td>';\n  servicesHtml += '</tr>';\n}\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    email: parsed.email,\n    services,\n    servicesHtml,\n    offerPeriod: parsed.OfferTime,\n    DiscountPercentage: discountPercentage,\n    businessId: $('Generate Email Webhook').item.json.body.business.id\n  }\n}];"
+        "jsCode": "const genResult = $('Offer Generation').first().json;\n\nif (genResult.error) {\n  return [{\n    json: {\n      error: genResult.error,\n      businessId: $('Generate Email Webhook').item.json.body.business.id\n    }\n  }];\n}\n\nconst raw = genResult.text;\n\n// Step 1: Remove the ```json at the start and ``` at the end\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')   // Remove opening ```json\n  .replace(/```\\s*$/i, '')       // Remove closing ```\n  .trim();                        // Remove any extra whitespace\n\n// Step 2: Now it's safe to parse\nconst parsed = JSON.parse(cleaned);\n\n// Strip any % the LLM may have added — the HTML template appends its own\nconst discountPercentage = String(parsed.Percentage).replace(/%/g, '').trim();\n\n// Use ALL services provided, not a fixed slice of 4\nconst allServices = $('Generate Email Webhook').item.json.body.ownerProfile?.services || [];\n// selectedServices is an array of service names picked in the composer's checklist —\n// undefined (e.g. a direct webhook call with no such field, like this workflow's own\n// pinned test data) falls back to using every service on file.\nconst selectedNames = $('Generate Email Webhook').item.json.body.selectedServices;\nconst services = Array.isArray(selectedNames)\n  ? allServices.filter((s) => selectedNames.includes(s.service))\n  : allServices;\n\n// Build the service cards HTML dynamically (2 per row, any number of services)\nfunction escapeHtml(str) {\n  return String(str || '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\nconst icons = ['⚙️', '🛡️', '📞', '☁️', '💡', '🔒', '📊', '🌐', '🩺', '💬'];\n\nfunction buildCard(item, icon, isLeft) {\n  const sidePadding = isLeft ? 'padding-right: 10px;' : 'padding-left: 10px;';\n  return `<td class=\"stack-col\" width=\"50%\" valign=\"top\" style=\"${sidePadding} padding-bottom: 20px;\">\n                                                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #f3f4f6; border-radius: 8px;\">\n                                                        <tr><td style=\"padding: 15px;\">\n                                                            <p style=\"font-size: 16px; font-weight: bold; color: #1f2937; margin: 0 0 5px 0;\">\n                                                                ${icon} ${escapeHtml(item.service)}\n                                                            </p>\n                                                            <p style=\"font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4;\">\n                                                                ${escapeHtml(item.description)}\n                                                            </p>\n                                                        </td></tr>\n                                                    </table>\n                                                </td>`;\n}\n\nlet servicesHtml = '';\nfor (let i = 0; i < services.length; i += 2) {\n  const left = services[i];\n  const right = services[i + 1];\n  servicesHtml += '<tr>';\n  servicesHtml += buildCard(left, icons[i % icons.length], true);\n  servicesHtml += right\n    ? buildCard(right, icons[(i + 1) % icons.length], false)\n    : '<td class=\"stack-col\" width=\"50%\">&nbsp;</td>';\n  servicesHtml += '</tr>';\n}\n\nreturn [{\n  json: {\n    subject: parsed.subject,\n    body: parsed.body,\n    email: parsed.email,\n    services,\n    servicesHtml,\n    offerPeriod: parsed.OfferTime,\n    DiscountPercentage: discountPercentage,\n    businessId: $('Generate Email Webhook').item.json.body.business.id,\n    ctaUrl: $('Generate Email Webhook').item.json.body.offer.ctaUrl,\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        512
+        768,
+        1808
       ],
-      "id": "a96b50c9-f852-42f6-9f5b-ed74cbe1c8d8",
+      "id": "94ee3644-de2c-45be-9be3-331586e635ba",
       "name": "Parsed Data"
     },
     {
@@ -66,37 +66,37 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        0,
-        512
+        416,
+        1808
       ],
-      "id": "d5997e75-f224-4168-ae42-ff94fa2da674",
+      "id": "5f075125-0bd4-4345-966a-a2227dd98a17",
       "name": "Offer Generation",
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "html": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head>\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>{{ $('Generate Email Webhook').item.json.body.ownerProfile.companyName }} - Limited-Time Offer</title>\n    <!-- Basic styles for wide compatibility -->\n    <style type=\"text/css\">\n        body { margin: 0; padding: 0; background-color: #f0f4f8; font-family: 'Arial', sans-serif; }\n        table { border-collapse: collapse; }\n        a { text-decoration: none; }\n        /* Make button background easy to find and update */\n        .button { background-color: #3730a3; border-radius: 8px; }\n        .button a { color: #ffffff; display: block; padding: 14px 28px; text-decoration: none; font-weight: bold; font-size: 16px; }\n\n        /* Responsive Styles */\n        @media only screen and (max-width: 600px) {\n            .main-content { width: 100% !important; }\n            .stack-col { width: 100% !important; display: block !important; padding-left: 0 !important; padding-right: 0 !important; }\n            .offer-text { font-size: 36px !important; }\n            .cta-padding { padding: 30px 20px !important; }\n            .card-spacer { padding-right: 0 !important; padding-left: 0 !important; }\n            .card-container { width: 100% !important; }\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f0f4f8;\">\n\n    <!-- Outer Table for Email Centering -->\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"table-layout: fixed;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 20px 0;\">\n\n                <!-- Main Content Wrapper Table (Max Width 600px) -->\n                <table class=\"main-content\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);\">\n\n                    <!-- Header Section (Dark Blue) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 30px 0; background-color: #1e3a8a; border-radius: 12px 12px 0 0;\">\n                            <h1 style=\"color: #ffffff; font-size: 26px; margin: 0; line-height: 1.2;\">\n                                <span style=\"font-size: 30px; vertical-align: middle;\">🚀</span>&nbsp;{{ $('Generate Email Webhook').item.json.body.ownerProfile.companyName }}\n                            </h1>\n                        </td>\n                    </tr>\n\n                    <!-- Main Offer Banner (Light Gray Background) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 40px 40px 20px 40px; background-color: #f9fafb;\">\n                            <p style=\"color: #3730a3; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;\">\n                                Exclusive Offer\n                            </p>\n                            <!-- NOTE: Easily change the percentage and time period here -->\n                            <h2 class=\"offer-text\" style=\"color: #1e3a8a; font-size: 48px; font-weight: 900; margin: 0;\">\n                         {{ $json.DiscountPercentage }}% OFF FIRST {{ $json.offerPeriod }}\n                            </h2>\n                        </td>\n                    </tr>\n\n                    <!-- Header Image -->\n                    {{ $('Generate Email Webhook').item.json.body.offer.imageUrl ? '<tr><td align=\"center\" style=\"padding: 10px 40px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.offer.imageUrl + '\" alt=\"\" width=\"520\" style=\"display: block; border: 0; max-width: 100%; height: auto; border-radius: 8px;\"></td></tr>' : '' }}\n\n                    <!-- Body Content -->\n                    <tr>\n                        <td style=\"padding: 30px 40px 10px 40px; color: #374151; font-size: 16px; line-height: 1.6;\">\n                            <p>{{ $json.body }}</p>\n                        </td>\n                    </tr>\n\n                    \n\n                    <!-- Feature Cards Grid -->\n                    <tr>\n                        <td style=\"padding: 0 40px 40px 40px;\">\n                            <h3 style=\"color: #1e3a8a; font-size: 22px; font-weight: bold; margin-bottom: 25px; text-align: center;\">Our Core Service Offerings</h3>\n\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n                                <tr>\n                                    <td>\n                                        <!-- Service Card Grid Table (rows generated dynamically) -->\n                                        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n\n                                            <!-- Dynamic Service Cards (any number, 2 per row) -->\n                                            {{ $json.servicesHtml }}\n\n                                        </table>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    <!-- End Feature Cards Grid -->\n\n                    <!-- Closing / Signature -->\n                    {{ $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml ? '<tr><td style=\"padding: 0 40px 30px 40px;\">' + $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml + '</td></tr>' : '' }}\n\n                    <!-- Footer Section (Dark Blue) -->\n                    <tr>\n                        <td style=\"padding: 30px 40px; background-color: #1e3a8a; border-radius: 0 0 12px 12px; color: #e0e7ff; text-align: center;\">\n                            <p style=\"font-size: 11px; color: #93c5fd; margin-top: 15px; margin-bottom: 0;\">\n                                &copy; 2025. All rights reserved. <a href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\"\n style=\"color: #93c5fd;\">Unsubscribe</a>\n                            </p>\n                        </td>\n                    </tr>\n                </table>\n                <!-- End Main Content Wrapper -->\n\n            </td>\n        </tr>\n    </table>\n    <!-- End Outer Table -->\n\n</body>\n</html>"
+        "html": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head>\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>{{ $('Generate Email Webhook').item.json.body.ownerProfile.companyName }} - Limited-Time Offer</title>\n    <!-- Basic styles for wide compatibility -->\n    <style type=\"text/css\">\n        body { margin: 0; padding: 0; background-color: #f0f4f8; font-family: Arial, Helvetica, 'Segoe UI', sans-serif; }\n        table { border-collapse: collapse; }\n        a { text-decoration: none; }\n        /* Make button background easy to find and update */\n        .button { background-color: #3730a3; border-radius: 8px; }\n        .button a { color: #ffffff; display: block; padding: 14px 28px; text-decoration: none; font-weight: bold; font-size: 16px; }\n\n        /* Responsive Styles */\n        @media only screen and (max-width: 600px) {\n            .main-content { width: 100% !important; }\n            .stack-col { width: 100% !important; display: block !important; padding-left: 0 !important; padding-right: 0 !important; }\n            .offer-text { font-size: 36px !important; }\n            .cta-padding { padding: 30px 20px !important; }\n            .card-spacer { padding-right: 0 !important; padding-left: 0 !important; }\n            .card-container { width: 100% !important; }\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f0f4f8;\">\n\n    <!-- Preview Text (hidden preheader shown in inbox next to subject line) -->\n    <div style=\"display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f0f4f8;\">\n        Get {{ $json.DiscountPercentage }}% off your first {{ $json.offerPeriod }} — limited time offer inside!\n    </div>\n\n    <!-- Outer Table for Email Centering -->\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"table-layout: fixed;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 20px 0;\">\n\n                <!-- Main Content Wrapper Table (Max Width 600px) -->\n                <table class=\"main-content\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\" style=\"background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);\">\n\n                    <!-- Main Offer Banner (Light Gray Background) -->\n                    <tr>\n                        <td align=\"center\" style=\"padding: 40px 40px 20px 40px; background-color: #f9fafb; border-radius: 12px 12px 0 0;\">\n                            <p style=\"color: #3730a3; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;\">\n                                Exclusive Offer\n                            </p>\n                            <!-- NOTE: Easily change the percentage and time period here -->\n                            <h2 class=\"offer-text\" style=\"color: #1e3a8a; font-size: 48px; font-weight: 900; margin: 0;\">\n                         {{ $json.DiscountPercentage }}% OFF FIRST {{ $json.offerPeriod }}\n                            </h2>\n                        </td>\n                    </tr>\n\n                    <!-- Header Image -->\n                    {{ $('Generate Email Webhook').item.json.body.offer.imageUrl ? '<tr><td align=\"center\" style=\"padding: 10px 40px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.offer.imageUrl + '\" alt=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.companyName + ' offer\" width=\"520\" style=\"display: block; border: 0; max-width: 100%; height: auto; border-radius: 8px;\"></td></tr>' : '' }}\n\n                    <!-- Body Content -->\n                    <tr>\n                        <td style=\"padding: 30px 40px 10px 40px; color: #374151; font-size: 16px; line-height: 1.6;\">\n                            <p>{{ $json.body }}</p>\n                        </td>\n                    </tr>\n\n                    <!-- Call to Action Button -->\n                    <tr>\n                        <td align=\"center\" class=\"cta-padding\" style=\"padding: 10px 40px 30px 40px;\">\n                            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n                                <tr>\n                                    <td class=\"button\">\n                                        <a href=\"{{ $json.ctaUrl }}\">Claim Your Offer</a>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n\n                    <!-- Feature Cards Grid -->\n                    <tr>\n                        <td style=\"padding: 0 40px 40px 40px;\">\n                            <h3 style=\"color: #1e3a8a; font-size: 22px; font-weight: bold; margin-bottom: 25px; text-align: center;\">Our Core Service Offerings</h3>\n\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n                                <tr>\n                                    <td>\n                                        <!-- Service Card Grid Table (rows generated dynamically) -->\n                                        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" role=\"presentation\">\n\n                                            <!-- Dynamic Service Cards (any number, 2 per row) -->\n                                            {{ $json.servicesHtml }}\n\n                                        </table>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    <!-- End Feature Cards Grid -->\n\n                    <!-- Closing / Signature -->\n                    {{ $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml ? '<tr><td style=\"padding: 0 40px 30px 40px;\">' + $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml + '</td></tr>' : '' }}\n\n                    <!-- Footer Section (Dark Blue) -->\n                    <tr>\n                        <td style=\"padding: 30px 40px; background-color: #1e3a8a; border-radius: 0 0 12px 12px; color: #e0e7ff; text-align: center;\">\n                            <p style=\"font-size: 11px; color: #93c5fd; margin: 0;\">\n                                <a href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\" style=\"color: #93c5fd;\">Unsubscribe</a>\n                            </p>\n                        </td>\n                    </tr>\n                </table>\n                <!-- End Main Content Wrapper -->\n\n            </td>\n        </tr>\n    </table>\n    <!-- End Outer Table -->\n\n</body>\n</html>"
       },
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        576,
-        512
+        992,
+        1808
       ],
-      "id": "8bdb05b5-17a0-4b83-b3eb-ea7384cb89dc",
+      "id": "19a4e325-3862-4c9f-8a8d-5713cf84efcd",
       "name": "HTML Offer template"
     },
     {
       "parameters": {
-        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>{{ $('Generate Email Webhook').item.json.body.ownerProfile.companyName }}</title>\n    <!-- CSS for Responsiveness and Styles -->\n    <style>\n        .preheader { display: none !important; visibility: hidden; opacity: 0; color: #ffffff; height: 0; width: 0; }\n        /* Reset styles */\n        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\n        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\n        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }\n        \n        /* Mobile styles: Stacks 2 columns to 1 column */\n        @media screen and (max-width: 600px) {\n            .mobile-full-width { width: 100% !important; max-width: 100% !important; }\n            .content-area { padding: 20px !important; }\n            /* Forces 50% cells to 100% on mobile */\n            .service-column { \n                width: 100% !important; \n                display: block !important; \n                padding: 10px 0 !important; /* Vertical spacing between stacked cards */\n            }\n            .spacer-row { display: none !important; } /* Hide empty spacer row on mobile */\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f4f4f4;\">\n    <span class=\"preheader\">{{ $('Parsing Data').item.json.preheader }}</span>\n\n    <center>\n        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"table-layout: fixed;\">\n            <tr>\n                <td align=\"center\" style=\"padding: 20px 0;\">\n                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" role=\"presentation\" class=\"mobile-full-width\" style=\"background-color: #ffffff; max-width: 600px; border-radius: 8px; overflow: hidden;\">\n\n                        <!-- 1. LOGO & BRANDING AREA -->\n                       {{ $('Generate Email Webhook').item.json.body.ownerProfile.logoUrl ? '<tr><td align=\"center\" style=\"padding: 10px 20px 5px 20px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.logoUrl + '\" alt=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.companyName + ' Logo\" width=\"150\" style=\"display: block; border: 0; max-width: 150px; margin: 0 auto;\" /></td></tr>' : '' }}\n                        <!-- Divider -->\n                        <tr>\n                            <td style=\"padding: 0 20px;\">\n                                <hr style=\"border: 0; height: 1px; background-color: #e0e0e0;\">\n                            </td>\n                        </tr>\n\n                        <!-- 2. HEADER IMAGE -->\n                        {{ $('Generate Email Webhook').item.json.body.ownerProfile.heroImageUrl ? '<tr><td align=\"center\" style=\"padding: 10px 20px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.heroImageUrl + '\" alt=\"\" width=\"560\" style=\"display: block; border: 0; max-width: 100%; height: auto; border-radius: 8px;\"></td></tr>' : '' }}\n\n                        <!-- 3. MAIN INTRODUCTION BODY (Mapped using $json.body) -->\n                        <tr>\n                            <td class=\"content-area\" style=\"padding: 20px 40px 10px 40px; font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <!-- Dynamic Email Body Content (from AI generation) -->\n                                 {{ $('Parsing Data').item.json.body }}\n                                <p style=\"margin: 20px 0 10px 0;\">\n                                    {{ $('Parsing Data').item.json.servicesIntro }}\n                                </p>\n                            </td>\n                        </tr>\n\n                        <!-- 4. DYNAMIC SERVICE LIST (2-Column Layout on Desktop, Stacking on Mobile) -->\n                        <tr>\n                            <td style=\"padding: 0px 20px 30px 20px;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    \n                                    <!-- Dynamic Service Cards (any number, 2 per row) -->\n                                    {{ $json.servicesHtml }}\n\n                                    <!-- Space between rows on desktop -->\n                                    <tr class=\"spacer-row\">\n                                        <td height=\"10\" style=\"font-size: 1px; line-height: 1px;\" colspan=\"2\">&nbsp;</td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n\n                        <!-- 5. CLOSING TEXT -->\n                        <tr>\n                            <td style=\"padding: 0 40px 20px 40px; font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <p style=\"margin: 0;\">\n                                    Feel free to reply to this email or give us a call if you'd like a quick chat to consult.\n                                </p>\n                                {{ $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml ? '<div style=\"margin-top: 16px;\">' + $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml + '</div>' : '' }}\n                            </td>\n                        </tr>\n\n                        <!-- 6. FOOTER BAR -->\n                        <tr>\n                            <td align=\"center\" style=\"background-color: #3f51b5; padding: 20px 0; color: #ffffff; font-family: Arial, sans-serif;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    <tr>\n                                        <td align=\"center\" style=\"font-size: 12px; padding: 0 20px;\">\n                                            \n                <a\n                  href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\"\n target=\"_blank\" style=\"color: #bbdefb; text-decoration: underline;\">Unsubscribe</a>\n                                        </td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n                    </table>\n                </td>\n            </tr>\n        </table>\n    </center>\n</body>\n</html>"
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>{{ $('Generate Email Webhook').item.json.body.ownerProfile.companyName }}</title>\n    <!-- CSS for Responsiveness and Styles -->\n    <style>\n        .preheader { display: none !important; visibility: hidden; opacity: 0; color: #ffffff; height: 0; width: 0; }\n        /* Reset styles */\n        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\n        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\n        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }\n\n        /* Button styles */\n        .button { background-color: #3f51b5; border-radius: 6px; }\n        .button a { color: #ffffff; display: block; padding: 12px 28px; text-decoration: none; font-weight: bold; font-size: 15px; font-family: Arial, Helvetica, 'Segoe UI', sans-serif; }\n\n        /* Mobile styles: Stacks 2 columns to 1 column */\n        @media screen and (max-width: 600px) {\n            .mobile-full-width { width: 100% !important; max-width: 100% !important; }\n            .content-area { padding: 20px !important; }\n            /* Forces 50% cells to 100% on mobile */\n            .service-column { \n                width: 100% !important; \n                display: block !important; \n                padding: 10px 0 !important; /* Vertical spacing between stacked cards */\n            }\n            .spacer-row { display: none !important; } /* Hide empty spacer row on mobile */\n        }\n    </style>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f4f4f4;\">\n    <span class=\"preheader\">\n        {{ $('Parsing Data').item.json.preheader }}\n        &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;\n    </span>\n\n    <center>\n        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\" style=\"table-layout: fixed;\">\n            <tr>\n                <td align=\"center\" style=\"padding: 20px 0;\">\n                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" role=\"presentation\" class=\"mobile-full-width\" style=\"background-color: #ffffff; max-width: 600px; border-radius: 8px; overflow: hidden;\">\n\n                        <!-- 1. LOGO & BRANDING AREA -->\n                       {{ $('Generate Email Webhook').item.json.body.ownerProfile.logoUrl ? '<tr><td align=\"center\" style=\"padding: 10px 20px 5px 20px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.logoUrl + '\" alt=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.companyName + ' Logo\" width=\"150\" style=\"display: block; border: 0; max-width: 150px; margin: 0 auto;\" /></td></tr>' : '' }}\n                        <!-- Divider -->\n                        <tr>\n                            <td style=\"padding: 0 20px;\">\n                                <hr style=\"border: 0; height: 1px; background-color: #e0e0e0;\">\n                            </td>\n                        </tr>\n\n                        <!-- 2. HEADER IMAGE -->\n                        {{ $('Generate Email Webhook').item.json.body.ownerProfile.heroImageUrl ? '<tr><td align=\"center\" style=\"padding: 10px 20px;\"><img src=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.heroImageUrl + '\" alt=\"' + $('Generate Email Webhook').item.json.body.ownerProfile.companyName + '\" width=\"560\" style=\"display: block; border: 0; max-width: 100%; height: auto; border-radius: 8px;\"></td></tr>' : '' }}\n\n                        <!-- 3. MAIN INTRODUCTION BODY (Mapped using $json.body) -->\n                        <tr>\n                            <td class=\"content-area\" style=\"padding: 20px 40px 10px 40px; font-family: Arial, Helvetica, 'Segoe UI', sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <!-- Dynamic Email Body Content (from AI generation) -->\n                                 {{ $('Parsing Data').item.json.body }}\n                                <p style=\"margin: 20px 0 10px 0;\">\n                                    {{ $('Parsing Data').item.json.servicesIntro }}\n                                </p>\n                            </td>\n                        </tr>\n\n                        <!-- 3b. CALL TO ACTION BUTTON -->\n                        <tr>\n                            <td align=\"center\" style=\"padding: 10px 40px 20px 40px;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\">\n                                    <tr>\n                                        <td class=\"button\">\n                                            <a href=\"{{ $json.ctaUrl }}\">Get in Touch</a>\n                                        </td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n\n                        <!-- 4. DYNAMIC SERVICE LIST (2-Column Layout on Desktop, Stacking on Mobile) -->\n                        <tr>\n                            <td style=\"padding: 0px 20px 30px 20px;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    \n                                    <!-- Dynamic Service Cards (any number, 2 per row) -->\n                                    {{ $json.servicesHtml }}\n\n                                    <!-- Space between rows on desktop -->\n                                    <tr class=\"spacer-row\">\n                                        <td height=\"10\" style=\"font-size: 1px; line-height: 1px;\" colspan=\"2\">&nbsp;</td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n\n                        <!-- 5. CLOSING TEXT -->\n                        <tr>\n                            <td style=\"padding: 0 40px 20px 40px; font-family: Arial, Helvetica, 'Segoe UI', sans-serif; font-size: 15px; line-height: 24px; color: #333333;\">\n                                <p style=\"margin: 0;\">\n                                    Feel free to reply to this email or give us a call if you'd like a quick chat to consult.\n                                </p>\n                                {{ $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml ? '<div style=\"margin-top: 16px;\">' + $('Generate Email Webhook').item.json.body.ownerProfile.signatureHtml + '</div>' : '' }}\n                            </td>\n                        </tr>\n\n                        <!-- 6. FOOTER BAR -->\n                        <tr>\n                            <td align=\"center\" style=\"background-color: #3f51b5; padding: 20px 0; color: #ffffff; font-family: Arial, Helvetica, 'Segoe UI', sans-serif;\">\n                                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" role=\"presentation\">\n                                    <tr>\n                                        <td align=\"center\" style=\"font-size: 12px; padding: 0 20px;\">\n                                            \n                <a\n                  href=\"{{ 'https://api.myn8n.au/api/public/unsubscribe?businessId=' + $json.businessId }}\"\n target=\"_blank\" style=\"color: #bbdefb; text-decoration: underline;\">Unsubscribe</a>\n                                        </td>\n                                    </tr>\n                                </table>\n                            </td>\n                        </tr>\n                    </table>\n                </td>\n            </tr>\n        </table>\n    </center>\n</body>\n</html>"
       },
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        352,
-        992
+        768,
+        2288
       ],
-      "id": "b91b7c26-257c-40c2-b2a9-9dfe6bbcc0e2",
+      "id": "d44b4c8a-4064-4b89-a801-1ad14df242c2",
       "name": "HTML Introduction Template"
     },
     {
@@ -107,10 +107,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -288,
-        1216
+        128,
+        2512
       ],
-      "id": "eb71b0fd-7582-4a7d-872d-13b43175537c",
+      "id": "288a32a6-7ab4-44a1-8b58-46243239e09a",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -127,10 +127,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        80,
-        736
+        496,
+        2032
       ],
-      "id": "f63082b9-9614-4e39-930f-5e9b4a9dcfb5",
+      "id": "e874ce5f-b9b4-4341-bb0e-d843190df41c",
       "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
@@ -149,10 +149,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -768,
-        752
+        -352,
+        2048
       ],
-      "id": "263a33e5-f0d0-47d8-ad93-d61f8f30c2c8",
+      "id": "2bb3c992-e2f5-4430-8090-fe8635d4ae87",
       "name": "Generate Email Webhook",
       "webhookId": "gen-email-webhook-0001"
     },
@@ -184,10 +184,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -512,
-        752
+        -96,
+        2048
       ],
-      "id": "eba44557-5a8d-414f-ae92-09ed5d3ef1b5",
+      "id": "bd48863e-dceb-440b-abfb-06c1f770f471",
       "name": "Has Offer?"
     },
     {
@@ -201,10 +201,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        800,
-        512
+        1216,
+        1808
       ],
-      "id": "8625673b-819c-4951-a59b-6057dc4feacb",
+      "id": "112f4be5-69ad-496d-82a3-a0aa4d38e8fa",
       "name": "Respond With Offer Draft"
     },
     {
@@ -218,10 +218,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        576,
-        1216
+        992,
+        2512
       ],
-      "id": "86de7948-636e-44c8-bc96-d1cfbc7e7222",
+      "id": "80e5a2d5-92af-4c01-b722-efc8e01faae2",
       "name": "Respond With Intro Draft"
     },
     {
@@ -252,10 +252,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        208,
-        1216
+        624,
+        2512
       ],
-      "id": "has-gen-error-if-intro-0001",
+      "id": "4bb0a5b2-bb6c-4cda-995f-df03b6053d67",
       "name": "Has Generation Error? (Intro)"
     },
     {
@@ -286,10 +286,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        208,
-        656
+        624,
+        1952
       ],
-      "id": "has-gen-error-if-offer-0001",
+      "id": "3601d9f3-7f20-48c6-9888-fa021848c732",
       "name": "Has Generation Error? (Offer)"
     }
   ],
@@ -300,52 +300,109 @@
           "headers": {
             "connection": "upgrade",
             "host": "myn8n.au",
-            "x-real-ip": "110.175.183.8",
-            "x-forwarded-for": "110.175.183.8",
+            "x-real-ip": "13.238.25.120",
+            "x-forwarded-for": "13.238.25.120",
             "x-forwarded-proto": "https",
-            "content-length": "627",
-            "user-agent": "curl/7.83.0",
-            "accept": "*/*",
-            "content-type": "application/json"
+            "content-length": "4180",
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.16.1",
+            "accept-encoding": "gzip, compress, deflate, br"
           },
           "params": {},
           "query": {},
           "body": {
             "business": {
-              "id": "test-business-id",
-              "name": "City Dental Melbourne",
-              "specialisation": "Dental",
-              "location": "Melbourne VIC",
-              "email": "contact@citydentalmelb.com.au",
-              "phone": "03 9111 1111",
-              "services": "Orthodontics",
-              "awards": null,
-              "yearsExperience": "5"
+              "id": "80335dd7-4012-46d4-8653-64149d58f63d",
+              "name": "The Sports Clinic at Sydney University",
+              "specialisation": "Sports Medicine Practice",
+              "location": "Cnr Western Ave & Physics Road, University of Sydney NSW 2006",
+              "email": "aayushsapkota115@outlook.com",
+              "phone": "+61 2 9351 8118, +61 2 9351 8123",
+              "website": "https://www.thesportsclinic.com.au/",
+              "contactFirstName": "Aayush",
+              "contactLastName": "Sapkota",
+              "services": "Sports Medicine, Physiotherapy, Dietetics, Podiatry, Exercise Physiology, Recovery Compression Boots Rental",
+              "awards": "Affiliation with Sports Medicine Australia, Affiliation with Australian Physiotherapy Association, Proud Sponsors of Sydney University Rugby, Sydney Uni Flames, Sydney Uni Soccer Football Club, Sydney University Boat Club 1860, Sydney University Cricket",
+              "yearsExperience": null,
+              "status": "EMAIL_SENT",
+              "unsubscribed": false,
+              "imageUrl": null,
+              "customAttrs": {},
+              "scrapedAt": "2026-08-14T14:22:06.586Z",
+              "createdAt": "2026-08-14T14:22:06.587Z",
+              "updatedAt": "2026-08-15T17:36:14.408Z"
             },
             "offer": {
-              "id": "test-offer-id",
-              "name": "Spring Special",
-              "headline": "20% off your first service",
-              "discountPercent": 20,
+              "id": "f66badf6-2aa5-483f-b867-6ce3cfb54a45",
+              "name": "First placement discount",
+              "headline": "15% off your first 3 months",
+              "discountPercent": 15,
               "durationLabel": "3 months",
-              "ctaText": "Claim Offer",
-              "bodyNotes": "Applies to IT support and cloud services only"
+              "ctaText": "Book a consultation",
+              "ctaUrl": "https://aidinfinityservices.com.au/",
+              "bodyNotes": "If they subscribe for our technical support, they will receive discount for 3 months.",
+              "imageUrl": "https://api.myn8n.au/uploads/1786765209409-6c62b8aa42fc.png",
+              "createdAt": "2026-08-15T03:40:09.464Z",
+              "updatedAt": "2026-08-16T01:05:28.050Z"
             },
             "ownerProfile": {
-              "id": "test-owner-profile-id",
-              "companyName": "Carbonelle Digital",
-              "senderName": "Aayush Sapkota",
+              "id": "571065da-1093-43b0-a809-5c2662f5b9ed",
+              "companyName": "Carbonelle",
               "senderEmail": "you@example.com",
-              "specialisation": "Dental Marketing",
+              "senderName": "Your Name",
+              "specialisation": "TOTAL MEDICAL IT SOLUTIONS PROVIDER",
+              "slogan": "\"Care that feels like family\"",
+              "website": "website.com",
+              "phone": "0420223902",
               "services": [
                 {
-                  "service": "SEO Optimization",
-                  "description": "Improve your search ranking and visibility."
+                  "service": "Managed Medical IT Services",
+                  "description": "Provides comprehensive IT services tailored for the medical industry."
+                },
+                {
+                  "service": "System Maintenance",
+                  "description": "Offers maintenance for IT systems."
+                },
+                {
+                  "service": "Network Audit & Assessment",
+                  "description": "Conducts audits and assessments of network infrastructure."
+                },
+                {
+                  "service": "Network Management",
+                  "description": "Manages and maintains network operations."
+                },
+                {
+                  "service": "Cyber Security",
+                  "description": "Provides security solutions to protect against cyber threats."
+                },
+                {
+                  "service": "Backup & Disaster Recovery",
+                  "description": "Ensures data backup and disaster recovery capabilities."
                 }
               ],
-              "signatureHtml": "<p><b>Aayush Sapkota</b><br/>Carbonelle Digital</p>",
-              "logoUrl": null
-            }
+              "signatureHtml": "<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family: Arial, sans-serif; color: #334155;\">\n  <tr>\n    <td style=\"padding-right: 16px; vertical-align: top;\"><img src=\"https://api.myn8n.au/uploads/1786603137395-da4075ee23e4.png\" alt=\"Carbonelle logo\" width=\"64\" style=\"display: block; border-radius: 8px;\" /></td>\n    <td style=\"vertical-align: top;\">\n      <div style=\"font-weight: bold; font-size: 15px; color: #7c3aed;\">Carbonelle Team</div>\n      <div style=\"font-style: italic; font-size: 13px; color: #64748b; margin: 2px 0 8px;\">\"\"Care that feels like family\"\"</div>\n      <div style=\"font-size: 13px; margin: 2px 0;\">✉️ <strong>Email:</strong> <a href=\"mailto:you@example.com\" style=\"color: #334155; text-decoration: none;\">you@example.com</a></div>\n      <div style=\"font-size: 13px; margin: 2px 0;\">🌐 <strong>Website:</strong> <a href=\"https://website.com\" style=\"color: #334155; text-decoration: none;\">website.com</a></div>\n      <div style=\"font-size: 13px; margin: 2px 0;\">📞 <strong>Phone:</strong> <a href=\"tel:0420223902\" style=\"color: #334155; text-decoration: none;\">0420223902</a></div>\n    </td>\n  </tr>\n</table>",
+              "logoUrl": "https://api.myn8n.au/uploads/1786603137395-da4075ee23e4.png",
+              "heroImageUrl": "https://api.myn8n.au/uploads/1786603136880-43446602ecb2.jpg",
+              "excludeSites": [
+                "yelp.com",
+                "yellowpages.com",
+                "facebook.com",
+                "yellowpages.ca",
+                "hotdoc.com.au",
+                "healthdirect.gov.au",
+                "instagram.com"
+              ],
+              "updatedAt": "2026-08-15T03:24:49.787Z"
+            },
+            "selectedServices": [
+              "Managed Medical IT Services",
+              "System Maintenance",
+              "Network Audit & Assessment",
+              "Network Management",
+              "Cyber Security",
+              "Backup & Disaster Recovery"
+            ]
           },
           "webhookUrl": "https://myn8n.au/webhook/generate-email",
           "executionMode": "production"
@@ -516,7 +573,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "754756d9-058c-4742-900b-ba24a62d04c2",
+  "versionId": "107324f7-dcfa-4302-bc3c-65901d994c3a",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
