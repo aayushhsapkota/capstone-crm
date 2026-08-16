@@ -15,7 +15,7 @@ function isBodyEmpty(html) {
     .trim().length === 0;
 }
 
-export default function EmailComposer({ businessId, onSent }) {
+export default function EmailComposer({ businessId, businessEmail, onSent }) {
   const [draft, setDraft] = useState({ subject: '', bodyHtml: '' });
   const [bodyEmpty, setBodyEmpty] = useState(true);
   const [offerId, setOfferId] = useState(null);
@@ -101,6 +101,10 @@ export default function EmailComposer({ businessId, onSent }) {
 
   const handleSend = async () => {
     if (!draft.subject.trim() || bodyEmpty) return;
+    if (!businessEmail?.trim()) {
+      setError("Business don't have email address, please set address before sending email");
+      return;
+    }
     setSending(true);
     setError('');
     try {

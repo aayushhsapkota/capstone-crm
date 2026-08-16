@@ -28,6 +28,15 @@ router.get('/gmail/connect', (req, res) => {
 
 // GET /api/integrations/gmail/callback — Google redirects here after consent.
 router.get('/gmail/callback', async (req, res) => {
+  // Without this, redirectBase silently becomes the string "undefined/settings/...",
+  // which isn't absolute — the browser resolves it relative to this very callback URL
+  // instead of erroring, landing on a nonsense path with no clue what went wrong. Fail
+  // loudly instead: a plain error page beats a broken redirect no one can diagnose.
+  if (!process.env.FRONTEND_PUBLIC_URL) {
+    console.error('Gmail OAuth callback: FRONTEND_PUBLIC_URL is not set.');
+    return res.status(500).send('Server misconfiguration: FRONTEND_PUBLIC_URL is not set.');
+  }
+
   const { code, state, error } = req.query;
   const redirectBase = `${process.env.FRONTEND_PUBLIC_URL}/settings/integrations`;
   const expectedState = pendingState;

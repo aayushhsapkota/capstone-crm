@@ -86,7 +86,7 @@ export default function BusinessThread({ businessId }) {
 
       <ThreadView emails={business.emails} />
 
-      <EmailComposer businessId={business.id} onSent={handleEmailSent} />
+      <EmailComposer businessId={business.id} businessEmail={business.email} onSent={handleEmailSent} />
     </div>
   );
 }
