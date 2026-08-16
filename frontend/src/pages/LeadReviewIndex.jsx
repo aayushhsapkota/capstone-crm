@@ -87,7 +87,7 @@ export default function LeadReviewIndex() {
                     // making the row click a dead end that still needs a manual toggle.
                     navigate(`/leads?queryId=${q.id}${q.pendingLeadsCount === 0 ? '&showFlagged=true' : ''}`)
                   }
-                  className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                  className="border-b border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <td className="py-2 pr-4 text-slate-800">{q.text}</td>
                   <td className="py-2 pr-4">

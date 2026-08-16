@@ -371,7 +371,7 @@ export default function LeadReviewDetail({ queryId }) {
             </thead>
             <tbody>
               {results.map((r) => (
-                <tr key={r.id} className="border-b border-slate-100">
+                <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-100 transition-colors">
                   {/* Dimming lives on these individual cells rather than the whole row —
                       opacity on the <tr> would cap the Flag column's action buttons at
                       the same faded brightness, since a child can't render brighter than

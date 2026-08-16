@@ -39,7 +39,7 @@ export default function ThreadView({ emails }) {
             <button
               type="button"
               onClick={() => toggleExpanded(email.id)}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-100 transition-colors"
             >
               <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{email.subject}</span>
               <span className="shrink-0 text-xs text-slate-400 whitespace-nowrap">

@@ -179,7 +179,7 @@ export default function QueryManager() {
                 <tr
                   key={q.id}
                   onClick={() => navigate(`/leads?queryId=${q.id}`)}
-                  className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                  className="border-b border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <td className="py-2 pr-4 text-slate-800">{q.text}</td>
                   <td className="py-2 pr-4 text-slate-500">

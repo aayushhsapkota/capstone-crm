@@ -80,7 +80,7 @@ export default function Campaigns() {
             <Link
               key={campaign.id}
               to={`/campaigns/${campaign.id}`}
-              className="block border border-slate-200 rounded-lg p-4 bg-white hover:border-slate-300"
+              className="block border border-slate-200 rounded-lg p-4 bg-white hover:bg-slate-100 hover:border-slate-300 transition-colors"
             >
               <div className="flex items-center justify-between mb-2">
                 <div>

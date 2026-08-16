@@ -4,6 +4,7 @@ import { getBusinesses, getBusinessIds } from '../api/businesses.js';
 import BulkSendModal from '../components/BulkSendModal.jsx';
 import AddBusinessModal from '../components/AddBusinessModal.jsx';
 import { STATUS_STYLES } from '../components/StatusBadge.jsx';
+import { useShowToast } from '../context/ToastContext.jsx';
 
 // A single dropdown mixing three different underlying filters (status, unsubscribed,
 // and "no email") — the value's prefix says which one a given option maps to, decoded
@@ -44,8 +45,8 @@ export default function BusinessesIndex() {
   const [loadError, setLoadError] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const navigate = useNavigate();
+  const showToast = useShowToast();
   const selectAllRef = useRef(null);
 
   const fetchBusinesses = useCallback(
@@ -146,8 +147,11 @@ export default function BusinessesIndex() {
   const handleCampaignStarted = (result) => {
     setShowBulkModal(false);
     clearSelection();
-    setToastMessage(`Campaign started — ${result.totalCount} businesses queued.`);
-    setTimeout(() => setToastMessage(''), 4000);
+    showToast(`Campaign started — ${result.totalCount} businesses queued.`);
+    // Uses the global toast (not local state) specifically so it survives this
+    // navigation — going straight to Campaigns is more useful than staying here to
+    // watch a list of businesses you just finished selecting.
+    navigate('/campaigns');
   };
 
   const handleBusinessAdded = (business) => {
@@ -156,8 +160,7 @@ export default function BusinessesIndex() {
     // to page 1 so it's actually visible rather than wherever the list happened to be
     // scrolled/paged to.
     fetchBusinesses(1);
-    setToastMessage(`${business.name} added.`);
-    setTimeout(() => setToastMessage(''), 4000);
+    showToast(`${business.name} added.`);
   };
 
   return (
@@ -166,17 +169,22 @@ export default function BusinessesIndex() {
       <p className="text-slate-500 mt-1">Every business you've scraped or added, in one place.</p>
 
       <div className="mt-4 flex items-center gap-2">
+        {/* h-9 on every control in this row — items-center alone leaves them at the
+            mercy of each element's own natural sizing, and a native <select>'s height
+            doesn't always match an <input>/<button> pixel-for-pixel across browsers
+            (OS-drawn dropdown chrome), even with identical padding. An explicit shared
+            height sidesteps that instead of just centering around the mismatch. */}
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search businesses…"
-          className="w-64 border border-slate-300 rounded-md px-3 py-1.5 text-sm"
+          className="w-64 h-9 border border-slate-300 rounded-md px-3 text-sm"
         />
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border border-slate-300 rounded-md px-2 py-1.5 text-sm"
+          className="h-9 border border-slate-300 rounded-md px-2 text-sm"
         >
           {FILTER_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -187,7 +195,7 @@ export default function BusinessesIndex() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="ml-auto px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+          className="ml-auto h-9 px-3 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"
         >
           + Add Business
         </button>
@@ -195,7 +203,7 @@ export default function BusinessesIndex() {
         {checkedIds.size >= 2 && (
           <button
             onClick={() => setShowBulkModal(true)}
-            className="px-3 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700"
+            className="h-9 px-3 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"
           >
             Send Bulk ({checkedIds.size})
           </button>
@@ -264,7 +272,7 @@ export default function BusinessesIndex() {
                 <tr
                   key={b.id}
                   onClick={() => navigate(`/console?businessId=${b.id}`)}
-                  className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                  className="border-b border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <td className="py-2 pr-4">
                     <input
@@ -344,12 +352,6 @@ export default function BusinessesIndex() {
 
       {showAddModal && (
         <AddBusinessModal onAdded={handleBusinessAdded} onClose={() => setShowAddModal(false)} />
-      )}
-
-      {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-slate-800 text-white text-sm px-4 py-2 rounded-md shadow-lg">
-          {toastMessage}
-        </div>
       )}
     </div>
   );

@@ -259,7 +259,7 @@ export default function Offers() {
             {offers.map((offer) => (
               <div
                 key={offer.id}
-                className="flex items-center justify-between border border-slate-200 rounded-lg p-3 bg-white"
+                className="flex items-center justify-between border border-slate-200 rounded-lg p-3 bg-white hover:bg-slate-100 transition-colors"
               >
                 <div>
                   <div className="text-sm font-medium text-slate-800">{offer.name}</div>
