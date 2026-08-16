@@ -39,4 +39,4 @@ app.use('/api/uploads', uploadsRouter);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Carbonelle CRM backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Capstone CRM backend running on port ${PORT}`));

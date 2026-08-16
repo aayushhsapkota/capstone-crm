@@ -11,8 +11,9 @@ const links = [
 export default function Sidebar() {
   return (
     <aside className="w-56 shrink-0 bg-slate-900 text-slate-100 min-h-screen flex flex-col">
-      <div className="px-4 py-5 text-lg font-semibold border-b border-slate-800">
-        Carbonelle CRM
+      <div className="px-4 py-5 flex items-center gap-2.5 border-b border-slate-800">
+        <img src="/logo.png" alt="" className="w-7 h-7 rounded-md shrink-0" />
+        <span className="text-lg font-semibold">Capstone CRM</span>
       </div>
       <nav className="flex-1 py-4">
         {links.map((link) => (
