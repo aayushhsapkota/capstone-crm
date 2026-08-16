@@ -83,8 +83,12 @@ export default function EmailComposer({ businessId, onSent }) {
         offerId,
         selectedServices: [...selectedServices],
       });
-      setDraft(generated);
-      setEditorContent(generated.bodyHtml);
+      // Trust the shape, not the values — a malformed workflow response (e.g. a
+      // node edit that drops a field) should show a blank field, not crash the page.
+      const subject = generated.subject || '';
+      const bodyHtml = generated.bodyHtml || '';
+      setDraft({ subject, bodyHtml });
+      setEditorContent(bodyHtml);
     } catch (err) {
       // err.response.data.error is the real message the backend forwarded from n8n
       // (e.g. an LLM auth/rate-limit failure) — fall back to a generic message for
