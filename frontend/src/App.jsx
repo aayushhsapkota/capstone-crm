@@ -7,7 +7,8 @@ import BusinessProfile from './pages/BusinessProfile.jsx';
 import Campaigns from './pages/Campaigns.jsx';
 import CampaignDetail from './pages/CampaignDetail.jsx';
 import Offers from './pages/Offers.jsx';
-import OwnerProfile from './pages/OwnerProfile.jsx';
+import ProfileSettings from './pages/ProfileSettings.jsx';
+import ExcludedDomains from './pages/ExcludedDomains.jsx';
 
 export default function App() {
   return (
@@ -21,7 +22,8 @@ export default function App() {
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/:id" element={<CampaignDetail />} />
         <Route path="/offers" element={<Offers />} />
-        <Route path="/owner-profile" element={<OwnerProfile />} />
+        <Route path="/settings/profile" element={<ProfileSettings />} />
+        <Route path="/settings/excluded-domains" element={<ExcludedDomains />} />
       </Routes>
     </Layout>
   );

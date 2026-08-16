@@ -6,7 +6,6 @@ const links = [
   { to: '/leads', label: 'Lead Review' },
   { to: '/campaigns', label: 'Campaigns' },
   { to: '/offers', label: 'Offers' },
-  { to: '/owner-profile', label: 'Owner Profile' },
 ];
 
 export default function Sidebar() {

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import Sidebar from './Sidebar.jsx';
 import NotificationBell from './NotificationBell.jsx';
+import ProfileMenu from './ProfileMenu.jsx';
 import Toast from './Toast.jsx';
 import { useToast } from '../hooks/useToast.js';
 import { ScrapeTrackerProvider } from '../context/ScrapeTracker.jsx';
@@ -46,8 +47,10 @@ export default function Layout({ children }) {
         <div className="flex min-h-screen bg-slate-50">
           <Sidebar />
           <div className="flex-1 flex flex-col">
-            <header className="flex items-center justify-end px-6 py-3 bg-white border-b border-slate-200">
+            <header className="flex items-center justify-end gap-3 px-6 py-3 bg-white border-b border-slate-200">
               <NotificationBell />
+              <div className="w-px h-6 bg-slate-200" />
+              <ProfileMenu />
             </header>
             <main className="flex-1 p-6">{children}</main>
           </div>

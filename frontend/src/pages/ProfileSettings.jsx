@@ -18,11 +18,9 @@ function isHtmlEmpty(html) {
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
 }
 
-export default function OwnerProfile() {
+export default function ProfileSettings() {
   const [form, setForm] = useState(null);
   const [serviceRows, setServiceRows] = useState([]);
-  const [excludeSites, setExcludeSites] = useState([]);
-  const [newExcludeSite, setNewExcludeSite] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -56,10 +54,9 @@ export default function OwnerProfile() {
         heroImageUrl: profile.heroImageUrl || '',
       });
       setServiceRows((profile.services || []).map(toServiceRow));
-      setExcludeSites(profile.excludeSites || []);
       setLoadError(false);
     } catch {
-      // Without this, a failed fetch left the page stuck on "Loading profile…" forever.
+      // Without this, a failed fetch left the page stuck on "Loading…" forever.
       setLoadError(true);
     } finally {
       setLoading(false);
@@ -138,17 +135,6 @@ export default function OwnerProfile() {
     setServiceRows((prev) => prev.filter((r) => r._id !== rowId));
   };
 
-  const handleAddExcludeSite = () => {
-    const site = newExcludeSite.trim().toLowerCase();
-    if (!site || excludeSites.includes(site)) return;
-    setExcludeSites((prev) => [...prev, site]);
-    setNewExcludeSite('');
-  };
-
-  const handleRemoveExcludeSite = (site) => {
-    setExcludeSites((prev) => prev.filter((s) => s !== site));
-  };
-
   const handleFetchFromWebsite = async () => {
     if (!fetchUrl.trim()) return;
     setFetching(true);
@@ -186,6 +172,9 @@ export default function OwnerProfile() {
       const services = serviceRows
         .map((r) => ({ service: r.service.trim(), description: r.description.trim() }))
         .filter((s) => s.service);
+      // Excluded domains live on their own page now and manage themselves — omitting
+      // the key here leaves that field untouched server-side (a partial update), it
+      // doesn't wipe it out.
       const updated = await saveOwnerProfile({
         companyName: form.companyName,
         senderName: form.senderName,
@@ -198,7 +187,6 @@ export default function OwnerProfile() {
         logoUrl: logoUrl || null,
         heroImageUrl: heroImageUrl || null,
         services,
-        excludeSites,
       });
       setForm((prev) => ({ ...prev, id: updated.id, logoUrl: logoUrl || '', heroImageUrl: heroImageUrl || '' }));
       setMessage('Saved.');
@@ -229,9 +217,9 @@ export default function OwnerProfile() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold text-slate-800">Owner Profile</h1>
-      <p className="text-slate-500 mt-1">Company info, services, and email signature.</p>
+    <div className="max-w-3xl pb-20">
+      <h1 className="text-2xl font-semibold text-slate-800">Profile Settings</h1>
+      <p className="text-slate-500 mt-1">Company info, services, and email signature used across every generated email.</p>
 
       <div className="mt-6 p-4 border border-slate-200 rounded-lg bg-slate-50">
         <h3 className="text-sm font-semibold text-slate-700">✦ Fetch from website</h3>
@@ -250,7 +238,7 @@ export default function OwnerProfile() {
             value={fetchUrl}
             onChange={(e) => setFetchUrl(e.target.value)}
             placeholder="https://yourcompany.com"
-            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
+            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
           />
           <button
             onClick={handleFetchFromWebsite}
@@ -262,96 +250,104 @@ export default function OwnerProfile() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Company Name</label>
-          <input
-            type="text"
-            value={form.companyName}
-            onChange={(e) => handleFieldChange('companyName', e.target.value)}
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Sender Name</label>
-          <input
-            type="text"
-            value={form.senderName}
-            onChange={(e) => handleFieldChange('senderName', e.target.value)}
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Sender Email</label>
-          <input
-            type="email"
-            value={form.senderEmail}
-            onChange={(e) => handleFieldChange('senderEmail', e.target.value)}
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Specialisation</label>
-          <input
-            type="text"
-            value={form.specialisation}
-            onChange={(e) => handleFieldChange('specialisation', e.target.value)}
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Slogan</label>
-          <input
-            type="text"
-            value={form.slogan}
-            onChange={(e) => handleFieldChange('slogan', e.target.value)}
-            placeholder={`e.g. "Care That Feels Like Family"`}
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Website</label>
-          <input
-            type="text"
-            value={form.website}
-            onChange={(e) => handleFieldChange('website', e.target.value)}
-            placeholder="www.yourcompany.com"
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Phone</label>
-          <input
-            type="text"
-            value={form.phone}
-            onChange={(e) => handleFieldChange('phone', e.target.value)}
-            placeholder="0400 000 000"
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="col-span-2">
-          <ImageUrlField
-            ref={logoFieldRef}
-            label="Logo"
-            value={form.logoUrl}
-            onChange={(url) => handleFieldChange('logoUrl', url)}
-            placeholder="https://example.com/logo.png"
-          />
-        </div>
-        <div className="col-span-2">
-          <ImageUrlField
-            ref={heroFieldRef}
-            label="Intro Email Header Image"
-            value={form.heroImageUrl}
-            onChange={(url) => handleFieldChange('heroImageUrl', url)}
-            placeholder="https://example.com/intro-header.jpg"
-          />
-        </div>
-      </div>
+      <section className="mt-6 bg-white border border-slate-200 rounded-lg p-5">
+        <h2 className="text-sm font-semibold text-slate-800">Company Information</h2>
+        <p className="text-xs text-slate-500 mt-0.5">Shown in generated emails and your signature.</p>
 
-      <div className="mt-8">
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Company Name</label>
+            <input
+              type="text"
+              value={form.companyName}
+              onChange={(e) => handleFieldChange('companyName', e.target.value)}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Sender Name</label>
+            <input
+              type="text"
+              value={form.senderName}
+              onChange={(e) => handleFieldChange('senderName', e.target.value)}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Sender Email</label>
+            <input
+              type="email"
+              value={form.senderEmail}
+              onChange={(e) => handleFieldChange('senderEmail', e.target.value)}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Specialisation</label>
+            <input
+              type="text"
+              value={form.specialisation}
+              onChange={(e) => handleFieldChange('specialisation', e.target.value)}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Slogan</label>
+            <input
+              type="text"
+              value={form.slogan}
+              onChange={(e) => handleFieldChange('slogan', e.target.value)}
+              placeholder={`e.g. "Care That Feels Like Family"`}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Website</label>
+            <input
+              type="text"
+              value={form.website}
+              onChange={(e) => handleFieldChange('website', e.target.value)}
+              placeholder="www.yourcompany.com"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Phone</label>
+            <input
+              type="text"
+              value={form.phone}
+              onChange={(e) => handleFieldChange('phone', e.target.value)}
+              placeholder="0400 000 000"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            />
+          </div>
+          <div className="col-span-2">
+            <ImageUrlField
+              ref={logoFieldRef}
+              label="Logo"
+              value={form.logoUrl}
+              onChange={(url) => handleFieldChange('logoUrl', url)}
+              placeholder="https://example.com/logo.png"
+            />
+          </div>
+          <div className="col-span-2">
+            <ImageUrlField
+              ref={heroFieldRef}
+              label="Intro Email Header Image"
+              value={form.heroImageUrl}
+              onChange={(url) => handleFieldChange('heroImageUrl', url)}
+              placeholder="https://example.com/intro-header.jpg"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6 bg-white border border-slate-200 rounded-lg p-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Services</h3>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-800">Services</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Featured in generated emails.</p>
+          </div>
           <button
             onClick={handleAddService}
             className="text-xs px-2 py-1 border border-slate-300 rounded-md hover:bg-slate-50"
@@ -360,7 +356,7 @@ export default function OwnerProfile() {
           </button>
         </div>
 
-        <div className="mt-3 space-y-2">
+        <div className="mt-4 space-y-2">
           {serviceRows.length === 0 ? (
             <p className="text-slate-400 text-xs">No services added.</p>
           ) : (
@@ -371,14 +367,14 @@ export default function OwnerProfile() {
                   value={row.service}
                   onChange={(e) => handleServiceChange(row._id, 'service', e.target.value)}
                   placeholder="e.g. Teeth Whitening"
-                  className="w-1/3 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
+                  className="w-1/3 border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
                 />
                 <input
                   type="text"
                   value={row.description}
                   onChange={(e) => handleServiceChange(row._id, 'description', e.target.value)}
                   placeholder="Short description shown in the email"
-                  className="flex-1 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
+                  className="flex-1 border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
                 />
                 <button
                   onClick={() => handleRemoveService(row._id)}
@@ -391,64 +387,13 @@ export default function OwnerProfile() {
             ))
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8">
-        <h3 className="text-sm font-semibold text-slate-700">Excluded Sites</h3>
-        <p className="text-xs text-slate-500 mt-1">
-          Domains to exclude from every search query (e.g. directory sites). Add any
-          industry-specific directories that clutter your results — these aren't
-          assumed for you.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {excludeSites.length === 0 ? (
-            <p className="text-slate-400 text-xs">No excluded sites.</p>
-          ) : (
-            excludeSites.map((site) => (
-              <span
-                key={site}
-                className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs rounded-full px-3 py-1"
-              >
-                {site}
-                <button
-                  onClick={() => handleRemoveExcludeSite(site)}
-                  className="text-slate-400 hover:text-red-600"
-                  aria-label={`Remove ${site}`}
-                >
-                  ✕
-                </button>
-              </span>
-            ))
-          )}
-        </div>
-        <div className="mt-3 flex gap-2 max-w-sm">
-          <input
-            type="text"
-            value={newExcludeSite}
-            onChange={(e) => setNewExcludeSite(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddExcludeSite();
-              }
-            }}
-            placeholder="e.g. yelp.com"
-            className="flex-1 border border-slate-300 rounded-md px-3 py-1.5 text-sm"
-          />
-          <button
-            onClick={handleAddExcludeSite}
-            className="text-xs px-3 py-1.5 border border-slate-300 rounded-md hover:bg-slate-50"
-          >
-            + Add
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-8">
+      <section className="mt-6 bg-white border border-slate-200 rounded-lg p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-700">Email Signature</h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <h2 className="text-sm font-semibold text-slate-800">Email Signature</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
               Used as the footer/sign-off in every generated email.
             </p>
           </div>
@@ -461,7 +406,7 @@ export default function OwnerProfile() {
           </button>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-4">
           <div className="flex items-center gap-1 text-xs">
             <button
               type="button"
@@ -505,19 +450,20 @@ export default function OwnerProfile() {
               onChange={handleSignatureTextareaChange}
               rows={8}
               placeholder="<p>Best regards,<br/>Your Name</p>"
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm resize-none font-mono"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm resize-none font-mono focus:outline-none focus:ring-1 focus:ring-slate-400"
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {saveError && (
-        <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {saveError}
-        </div>
-      )}
-
-      <div className="mt-8 flex items-center gap-3">
+      {/* Sticky so Save stays reachable without hunting for it at the bottom of a long
+          page — this page's whole point is to hold more than a compact form comfortably. */}
+      <div className="fixed bottom-0 left-56 right-0 bg-white border-t border-slate-200 px-6 py-3.5 flex items-center gap-3 z-10">
+        {saveError && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-1.5">
+            {saveError}
+          </div>
+        )}
         <button
           onClick={handleSave}
           disabled={saving}
