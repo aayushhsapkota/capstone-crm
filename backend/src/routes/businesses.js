@@ -7,11 +7,15 @@ const router = Router();
 router.get('/', async (req, res, next) => {
   try {
     //test deployment again
-    const { status, unsubscribed, search, page = 1, limit = 50, idsOnly } = req.query;
+    const { status, unsubscribed, hasEmail, search, page = 1, limit = 50, idsOnly } = req.query;
     const where = {};
 
     if (status) where.status = status;
     if (unsubscribed !== undefined) where.unsubscribed = unsubscribed === 'true';
+    // email is unique-when-set, so "no email" is only ever represented as null, never
+    // an empty string (two businesses both saved with "" would violate the unique
+    // constraint) — a plain equals/not-null check is enough, no OR needed.
+    if (hasEmail !== undefined) where.email = hasEmail === 'false' ? null : { not: null };
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },

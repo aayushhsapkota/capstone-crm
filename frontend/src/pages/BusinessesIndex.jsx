@@ -4,16 +4,26 @@ import { getBusinesses, getBusinessIds } from '../api/businesses.js';
 import BulkSendModal from '../components/BulkSendModal.jsx';
 import { STATUS_STYLES } from '../components/StatusBadge.jsx';
 
-const STATUS_FILTERS = [
-  '',
-  'NEW',
-  'EMAIL_SENT',
-  'AWAITING_REPLY',
-  'FOLLOW_UP_SENT',
-  'REPLIED',
-  'CLOSED_WON',
-  'CLOSED_LOST',
+// A single dropdown mixing three different underlying filters (status, unsubscribed,
+// and "no email") — the value's prefix says which one a given option maps to, decoded
+// by filterToParams() below. Kept to a short, commonly-needed subset of statuses
+// rather than the full BusinessStatus enum, since this list is meant to stay scannable.
+const FILTER_OPTIONS = [
+  { value: '', label: 'All statuses' },
+  { value: 'status:NEW', label: 'NEW' },
+  { value: 'status:EMAIL_SENT', label: 'EMAIL SENT' },
+  { value: 'status:CLOSED_WON', label: 'CLOSED WON' },
+  { value: 'unsubscribed', label: 'Unsubscribed' },
+  { value: 'no_email', label: 'No email' },
 ];
+
+function filterToParams(filter) {
+  if (!filter) return {};
+  if (filter.startsWith('status:')) return { status: filter.slice(7) };
+  if (filter === 'unsubscribed') return { unsubscribed: true };
+  if (filter === 'no_email') return { hasEmail: false };
+  return {};
+}
 
 const PAGE_SIZE = 50;
 
@@ -22,7 +32,7 @@ export default function BusinessesIndex() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [filter, setFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState(new Set());
   // True once "Select all N businesses" (across every page) has been used — distinct
   // from just having every row on the current page checked, since that's still only
@@ -40,9 +50,8 @@ export default function BusinessesIndex() {
     async (targetPage = page) => {
       setLoading(true);
       try {
-        const params = { page: targetPage, limit: PAGE_SIZE };
+        const params = { page: targetPage, limit: PAGE_SIZE, ...filterToParams(filter) };
         if (search) params.search = search;
-        if (statusFilter) params.status = statusFilter;
         const data = await getBusinesses(params);
         setBusinesses(data.businesses);
         setTotal(data.total);
@@ -60,14 +69,14 @@ export default function BusinessesIndex() {
         setLoading(false);
       }
     },
-    [search, statusFilter] // eslint-disable-line react-hooks/exhaustive-deps
+    [search, filter] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // Reset to page 1 whenever the search or status filter changes — otherwise you
-  // could land on "page 3" of a filter that now only has 1 page.
+  // Reset to page 1 whenever the search or filter changes — otherwise you could land
+  // on "page 3" of a filter that now only has 1 page.
   useEffect(() => {
     fetchBusinesses(1);
-  }, [search, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search, filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -114,9 +123,8 @@ export default function BusinessesIndex() {
   const handleSelectAllMatching = async () => {
     setSelectingAll(true);
     try {
-      const params = {};
+      const params = { ...filterToParams(filter) };
       if (search) params.search = search;
-      if (statusFilter) params.status = statusFilter;
       const ids = await getBusinessIds(params);
       setCheckedIds(new Set(ids));
       setSelectAllMatching(true);
@@ -154,13 +162,13 @@ export default function BusinessesIndex() {
           className="w-64 border border-slate-300 rounded-md px-3 py-1.5 text-sm"
         />
         <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
           className="border border-slate-300 rounded-md px-2 py-1.5 text-sm"
         >
-          {STATUS_FILTERS.map((s) => (
-            <option key={s} value={s}>
-              {s ? s.replace(/_/g, ' ') : 'All statuses'}
+          {FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>
@@ -253,6 +261,11 @@ export default function BusinessesIndex() {
                       {b.unsubscribed && (
                         <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full whitespace-nowrap">
                           Unsubscribed
+                        </span>
+                      )}
+                      {!b.email && (
+                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                          No email
                         </span>
                       )}
                     </div>
