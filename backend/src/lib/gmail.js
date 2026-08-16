@@ -84,40 +84,130 @@ function buildRawMessage({ to, from, subject, bodyHtml }) {
   return Buffer.from(lines.join('\r\n')).toString('base64url');
 }
 
+/**
+ * Sends an email through the Gmail account connected to the owner's profile.
+ *
+ * The Gmail OAuth tokens are stored encrypted in the database. The access token
+ * is short-lived, while the refresh token allows Google's OAuth client to obtain
+ * a new access token automatically when necessary.
+ *
+ * @param {Object} params
+ * @param {string} params.to - Recipient email address.
+ * @param {string} params.subject - Email subject.
+ * @param {string} params.bodyHtml - HTML content of the email.
+ * @returns {Promise<{ gmailMessageId: string, gmailThreadId: string }>}
+ */
 export async function sendGmail({ to, subject, bodyHtml }) {
+  // Load the owner's profile so we can retrieve the encrypted Gmail OAuth
+  // credentials and the Gmail address that should be used as the sender.
   const profile = await prisma.ownerProfile.findFirst();
+
+  // A refresh token is required for a persistent Gmail connection. If it is
+  // missing, the user has not completed the Gmail OAuth connection flow yet.
   if (!profile?.gmailRefreshToken) {
-    throw new Error('Gmail is not connected. Connect it under Profile menu → Integrations first.');
+    throw new Error(
+      'Gmail is not connected. Connect it under Profile menu → Integrations first.'
+    );
   }
 
+  // Create the Google OAuth2 client using the application's Gmail OAuth
+  // configuration (client ID, client secret, redirect URI, etc.).
   const client = getOAuthClient();
+
+  // Restore the saved OAuth credentials.
+  //
+  // The tokens are encrypted in the database, so they must be decrypted before
+  // being passed to Google's OAuth client.
+  //
+  // access_token:
+  //   Short-lived credential used to make Gmail API requests.
+  //
+  // refresh_token:
+  //   Long-lived credential that allows Google to issue a new access token
+  //   without requiring the user to log in or authorize the app again.
+  //
+  // expiry_date:
+  //   Tells the OAuth client when the current access token expires so it knows
+  //   when a refresh may be necessary.
   client.setCredentials({
-    access_token: profile.gmailAccessToken ? decrypt(profile.gmailAccessToken) : undefined,
+    access_token: profile.gmailAccessToken
+      ? decrypt(profile.gmailAccessToken)
+      : undefined,
     refresh_token: decrypt(profile.gmailRefreshToken),
     expiry_date: profile.gmailTokenExpiry?.getTime(),
   });
 
-  // googleapis refreshes the access token behind the scenes when it's stale — without
-  // persisting that back, every subsequent send re-hits Google's token endpoint instead
-  // of reusing the fresh one this call just obtained.
+  // Google's OAuth client emits a "tokens" event whenever it obtains new
+  // credentials, including when it refreshes an expired access token.
+  //
+  // Persisting the new credentials means future email sends can reuse the
+  // refreshed access token instead of unnecessarily contacting Google's token
+  // endpoint again.
   client.on('tokens', (tokens) => {
     const data = {};
-    if (tokens.access_token) data.gmailAccessToken = encrypt(tokens.access_token);
-    if (tokens.refresh_token) data.gmailRefreshToken = encrypt(tokens.refresh_token);
-    if (tokens.expiry_date) data.gmailTokenExpiry = new Date(tokens.expiry_date);
+
+    // Save the new access token in encrypted form.
+    if (tokens.access_token) {
+      data.gmailAccessToken = encrypt(tokens.access_token);
+    }
+
+    // Google may occasionally return a replacement refresh token.
+    // Only overwrite the existing one when Google actually provides a new one.
+    if (tokens.refresh_token) {
+      data.gmailRefreshToken = encrypt(tokens.refresh_token);
+    }
+
+    // Store the new expiration time so the OAuth client knows when the access
+    // token will become stale.
+    if (tokens.expiry_date) {
+      data.gmailTokenExpiry = new Date(tokens.expiry_date);
+    }
+
+    // Only update the database when Google actually returned new credentials.
+    // The update is intentionally asynchronous so token persistence does not
+    // unnecessarily delay the email-send operation.
     if (Object.keys(data).length) {
-      prisma.ownerProfile.update({ where: { id: profile.id }, data }).catch(console.error);
+      prisma.ownerProfile
+        .update({
+          where: { id: profile.id },
+          data,
+        })
+        .catch(console.error);
     }
   });
 
-  const gmail = google.gmail({ version: 'v1', auth: client });
+  // Create an authenticated Gmail API client using the OAuth credentials above.
+  const gmail = google.gmail({
+    version: 'v1',
+    auth: client,
+  });
+
+  // Build the MIME email and encode it into the raw format required by the
+  // Gmail API. The "From" address is the Gmail account connected through OAuth.
   const raw = buildRawMessage({
     to,
-    from: profile.senderName ? `"${profile.senderName}" <${profile.gmailConnectedEmail}>` : profile.gmailConnectedEmail,
+    from: profile.senderName
+      ? `"${profile.senderName}" <${profile.gmailConnectedEmail}>`
+      : profile.gmailConnectedEmail,
     subject,
     bodyHtml,
   });
 
-  const { data } = await gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
-  return { gmailMessageId: data.id, gmailThreadId: data.threadId };
+  // Send the email through Gmail.
+  //
+  // userId: 'me' means "the currently authenticated Gmail account" rather
+  // than a specific Gmail address.
+  const { data } = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw,
+    },
+  });
+
+  // Return Google's identifiers so the caller can track the sent message
+  // and its Gmail conversation/thread if needed.
+  return {
+    gmailMessageId: data.id,
+    gmailThreadId: data.threadId,
+  };
 }
