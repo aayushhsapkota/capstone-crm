@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBusinesses, getBusinessIds } from '../api/businesses.js';
 import BulkSendModal from '../components/BulkSendModal.jsx';
+import AddBusinessModal from '../components/AddBusinessModal.jsx';
 import { STATUS_STYLES } from '../components/StatusBadge.jsx';
 
 // A single dropdown mixing three different underlying filters (status, unsubscribed,
@@ -42,7 +43,8 @@ export default function BusinessesIndex() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const [campaignMessage, setCampaignMessage] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const navigate = useNavigate();
   const selectAllRef = useRef(null);
 
@@ -144,8 +146,18 @@ export default function BusinessesIndex() {
   const handleCampaignStarted = (result) => {
     setShowBulkModal(false);
     clearSelection();
-    setCampaignMessage(`Campaign started — ${result.totalCount} businesses queued.`);
-    setTimeout(() => setCampaignMessage(''), 4000);
+    setToastMessage(`Campaign started — ${result.totalCount} businesses queued.`);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
+
+  const handleBusinessAdded = (business) => {
+    setShowAddModal(false);
+    // Newly added shows up at the top (list is ordered by createdAt desc) — jump back
+    // to page 1 so it's actually visible rather than wherever the list happened to be
+    // scrolled/paged to.
+    fetchBusinesses(1);
+    setToastMessage(`${business.name} added.`);
+    setTimeout(() => setToastMessage(''), 4000);
   };
 
   return (
@@ -173,10 +185,17 @@ export default function BusinessesIndex() {
           ))}
         </select>
 
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="ml-auto px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+        >
+          + Add Business
+        </button>
+
         {checkedIds.size >= 2 && (
           <button
             onClick={() => setShowBulkModal(true)}
-            className="ml-auto px-3 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700"
+            className="px-3 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700"
           >
             Send Bulk ({checkedIds.size})
           </button>
@@ -323,9 +342,13 @@ export default function BusinessesIndex() {
         />
       )}
 
-      {campaignMessage && (
+      {showAddModal && (
+        <AddBusinessModal onAdded={handleBusinessAdded} onClose={() => setShowAddModal(false)} />
+      )}
+
+      {toastMessage && (
         <div className="fixed bottom-4 right-4 bg-slate-800 text-white text-sm px-4 py-2 rounded-md shadow-lg">
-          {campaignMessage}
+          {toastMessage}
         </div>
       )}
     </div>

@@ -1,34 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBusiness, updateBusiness } from '../api/businesses.js';
-
-const FIELDS = [
-  { key: 'name', label: 'Business Name' },
-  { key: 'specialisation', label: 'Specialisation' },
-  { key: 'location', label: 'Location' },
-  { key: 'email', label: 'Email' },
-  { key: 'phone', label: 'Phone' },
-  { key: 'website', label: 'Website' },
-  { key: 'contactFirstName', label: 'Contact First Name' },
-  { key: 'contactLastName', label: 'Contact Last Name' },
-  { key: 'services', label: 'Services' },
-  { key: 'awards', label: 'Awards' },
-  { key: 'yearsExperience', label: 'Years Experience' },
-];
+import { BUSINESS_FIELDS as FIELDS, friendlySaveError } from '../lib/businessFields.js';
 
 let rowKey = 0;
-
-// The backend forwards Prisma's own error message verbatim (e.g. "Unique constraint
-// failed on the fields: (`email`)") — readable enough to debug, not to show a user.
-// This is currently the only case that can realistically happen here (email is the
-// only unique field on Business), so it's translated specifically rather than
-// generically parsed.
-function friendlySaveError(message) {
-  if (message?.includes('Unique constraint') && message?.includes('email')) {
-    return 'That email is already used by another business — each business needs a unique email.';
-  }
-  return message || 'Failed to save. Please try again.';
-}
 
 export default function BusinessProfile() {
   const { id } = useParams();

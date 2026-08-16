@@ -21,3 +21,14 @@ export async function updateBusiness(id, patch) {
   const { data } = await client.patch(`/businesses/${id}`, patch);
   return data;
 }
+
+// Draft only — doesn't create anything, same as owner-profile's scrape.
+export async function scrapeBusinessFromWebsite(websiteUrl) {
+  const { data } = await client.post('/businesses/scrape', { websiteUrl });
+  return data;
+}
+
+export async function createBusiness(payload) {
+  const { data } = await client.post('/businesses', payload);
+  return data;
+}

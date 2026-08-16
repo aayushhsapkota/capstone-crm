@@ -1,0 +1,224 @@
+{
+  "name": "Business Scrape",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "business-scrape",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1280, 256],
+      "id": "webhook-business-scrape-0001",
+      "name": "Webhook",
+      "webhookId": "business-scrape"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.websiteUrl }}\",\n  \"formats\": [\n    \"markdown\"\n  ],\n  \"onlyMainContent\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1024, 256],
+      "id": "scrape-from-firecrawl-business-0001",
+      "name": "scrape from firecrawl",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eWufcyvisZkqmLkT",
+          "name": "firecrawl api"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "has-firecrawl-error-business-cond-0001",
+              "leftValue": "={{ $json.error ? true : false }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-768, 256],
+      "id": "has-firecrawl-error-business-if-0001",
+      "name": "Has Firecrawl Error?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    error: $json.error?.message || 'Scrape failed'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-768, 480],
+      "id": "build-firecrawl-error-business-0001",
+      "name": "Build Firecrawl Error Result"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information for this business (a prospective lead, not the sender's own company).\n\nFields to extract (leave blank/null or empty array if not present — never invent information):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, and notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If nothing relevant is found for a field, leave it blank/null (or an empty array for services) rather than guessing.",
+        "hasOutputParser": true,
+        "messages": { "messageValues": [] }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [-512, 128],
+      "id": "ai-extract-business-0001",
+      "name": "AI Extract Business Data",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-544, 352],
+      "id": "gemini-model-business-0001",
+      "name": "Gemini Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "05WkRoe0PSJh3ZYO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"name\": \"Acme Dental Group\",\n  \"specialisation\": \"Dental Clinic\",\n  \"location\": \"Sydney, NSW\",\n  \"phone\": \"(02) 9555 1234\",\n  \"email\": \"contact@acmedental.com\",\n  \"yearsExperience\": \"10+\",\n  \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n  \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [-384, 352],
+      "id": "structured-output-parser-business-0001",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "has-gen-error-business-cond-0001",
+              "leftValue": "={{ $json.error ? true : false }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-256, 128],
+      "id": "has-gen-error-business-if-0001",
+      "name": "Has Generation Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.error } }}",
+        "options": { "responseCode": 500 }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [0, 384],
+      "id": "respond-with-error-business-0001",
+      "name": "Respond With Error"
+    },
+    {
+      "parameters": {
+        "jsCode": "// website isn't AI-extracted — it's just the URL that was scraped, same convention\n// used when the batch scrape workflow creates a Business directly.\nconst extracted = $json.output;\nconst websiteUrl = $('Webhook').item.json.body.websiteUrl;\n\nreturn [{\n  json: {\n    ...extracted,\n    website: websiteUrl\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "attach-website-business-0001",
+      "name": "Attach Website URL"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [256, 0],
+      "id": "respond-with-draft-business-0001",
+      "name": "Respond With Business Draft"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "scrape from firecrawl", "type": "main", "index": 0 }]]
+    },
+    "scrape from firecrawl": {
+      "main": [
+        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }],
+        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Firecrawl Error?": {
+      "main": [
+        [{ "node": "Build Firecrawl Error Result", "type": "main", "index": 0 }],
+        [{ "node": "AI Extract Business Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Firecrawl Error Result": {
+      "main": [[{ "node": "Respond With Error", "type": "main", "index": 0 }]]
+    },
+    "Gemini Model": {
+      "ai_languageModel": [[{ "node": "AI Extract Business Data", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [[{ "node": "AI Extract Business Data", "type": "ai_outputParser", "index": 0 }]]
+    },
+    "AI Extract Business Data": {
+      "main": [[{ "node": "Has Generation Error?", "type": "main", "index": 0 }]]
+    },
+    "Has Generation Error?": {
+      "main": [
+        [{ "node": "Respond With Error", "type": "main", "index": 0 }],
+        [{ "node": "Attach Website URL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Attach Website URL": {
+      "main": [[{ "node": "Respond With Business Draft", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b3f1a001-business-scrape-v1",
+  "meta": {
+    "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
+  },
+  "id": "BusinessScrapeWF001",
+  "tags": []
+}

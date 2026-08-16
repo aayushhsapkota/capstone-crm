@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
+import { callN8n } from '../lib/n8n.js';
 
 const router = Router();
 
@@ -43,6 +44,42 @@ router.get('/', async (req, res, next) => {
     ]);
 
     res.json({ businesses, total, page: Number(page), limit: Number(limit) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/businesses/scrape — extract business info from a single website via
+// Firecrawl + Gemini. Returns a draft for the caller to review/edit — never creates
+// the business directly, same reasoning as owner-profile's /scrape (LLM extraction
+// can be wrong, and this is a one-off manual add rather than a batch where flagging
+// bad extractions for later review is the more practical option).
+router.post('/scrape', async (req, res, next) => {
+  try {
+    const { websiteUrl } = req.body;
+    const draft = await callN8n(process.env.N8N_WEBHOOK_BUSINESS_SCRAPE, { websiteUrl });
+
+    if (draft?.error) {
+      return res.status(502).json({ error: draft.error });
+    }
+
+    res.json(draft); // { name, specialisation, location, phone, email, website, yearsExperience, services, awards }
+  } catch (err) {
+    const n8nError = err.response?.data?.error;
+    if (n8nError) {
+      return res.status(502).json({ error: n8nError });
+    }
+    next(err);
+  }
+});
+
+// POST /api/businesses — manual add, e.g. from the "Add Business" scrape-and-review
+// flow. status/unsubscribed keep their schema defaults (NEW/false) since this isn't
+// data returning from an existing thread.
+router.post('/', async (req, res, next) => {
+  try {
+    const business = await prisma.business.create({ data: req.body });
+    res.status(201).json(business);
   } catch (err) {
     next(err);
   }
