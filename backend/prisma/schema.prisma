@@ -203,5 +203,15 @@ model OwnerProfile {
   logoUrl        String?
   heroImageUrl   String?  // Intro email header image
   excludeSites   String[] @default([])  // Domains appended as -site: exclusions to every search query
+
+  // Gmail OAuth — lets the user connect their own Gmail account for sending, instead
+  // of it being configured inside n8n. Token fields are encrypted at rest (see
+  // backend/src/lib/crypto.js); gmailConnectedEmail is just the connected address,
+  // shown as-is in the UI, so it's left unencrypted.
+  gmailAccessToken   String?
+  gmailRefreshToken  String?
+  gmailTokenExpiry   DateTime?
+  gmailConnectedEmail String?
+
   updatedAt      DateTime @updatedAt
 }

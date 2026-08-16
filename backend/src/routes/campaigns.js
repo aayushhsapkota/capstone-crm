@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { callN8n } from '../lib/n8n.js';
+import { sendGmail } from '../lib/gmail.js';
 
 const router = Router();
 
@@ -100,17 +101,9 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         throw new Error(draft.error);
       }
 
-      const result = await callN8n(process.env.N8N_WEBHOOK_SEND_EMAIL, {
-        business,
-        subject: draft.subject,
-        bodyHtml: draft.bodyHtml,
-      });
-
-      // send-email always responds 200, so a failed send has to be detected via
-      // {ok: false} rather than a caught exception — same as emails.js /send.
-      if (result?.ok !== true) {
-        throw new Error(result?.error || 'Email send failed');
-      }
+      // Sent directly via the connected Gmail account — same as emails.js /send.
+      // sendGmail throws on failure, which the catch block below already handles.
+      const result = await sendGmail({ to: business.email, subject: draft.subject, bodyHtml: draft.bodyHtml });
 
       await prisma.email.create({
         data: {

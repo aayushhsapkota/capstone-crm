@@ -2,30 +2,14 @@ import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { callN8n } from '../lib/n8n.js';
 import { deleteUploadedFileIfLocal } from '../lib/uploads.js';
+import { getOrCreateOwnerProfile } from '../lib/ownerProfile.js';
 
 const router = Router();
-
-// Starting point for a new profile's excludeSites — generic directory sites only, since
-// these are noise regardless of industry. Deliberately no industry-specific entries
-// (e.g. health-directory sites) here — those only make sense once you know what
-// industry a given profile is actually in, so they belong on the Owner Profile page as
-// something you add yourself, not something assumed for you.
-const DEFAULT_EXCLUDE_SITES = ['yelp.com', 'yellowpages.com', 'facebook.com', 'yellowpages.ca'];
 
 // GET /api/owner-profile — creates default if none exists
 router.get('/', async (req, res, next) => {
   try {
-    let profile = await prisma.ownerProfile.findFirst();
-    if (!profile) {
-      profile = await prisma.ownerProfile.create({
-        data: {
-          companyName: 'My Company',
-          senderName: 'Your Name',
-          senderEmail: 'you@example.com',
-          excludeSites: DEFAULT_EXCLUDE_SITES,
-        },
-      });
-    }
+    const profile = await getOrCreateOwnerProfile();
     res.json(profile);
   } catch (err) {
     next(err);

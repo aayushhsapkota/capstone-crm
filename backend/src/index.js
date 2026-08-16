@@ -16,6 +16,7 @@ import ownerProfileRouter from './routes/ownerProfile.js';
 import webhooksRouter from './routes/webhooks.js';
 import publicRouter from './routes/public.js';
 import uploadsRouter from './routes/uploads.js';
+import integrationsRouter from './routes/integrations.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/owner-profile', ownerProfileRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/public', publicRouter);
 app.use('/api/uploads', uploadsRouter);
+app.use('/api/integrations', integrationsRouter);
 
 app.use(errorHandler);
 

@@ -31,6 +31,15 @@ function GlobeIcon() {
   );
 }
 
+function PlugIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v4m6-4v4M6 7h12l-.6 6.6a5.4 5.4 0 0 1-10.8 0L6 7Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 17.5V21" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
@@ -125,6 +134,14 @@ export default function ProfileMenu() {
               >
                 <GlobeIcon />
                 Excluded Domains
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => goTo('/settings/integrations')}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+              >
+                <PlugIcon />
+                Integrations
               </button>
             </div>
 

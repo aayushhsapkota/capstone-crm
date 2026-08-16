@@ -9,6 +9,7 @@ import CampaignDetail from './pages/CampaignDetail.jsx';
 import Offers from './pages/Offers.jsx';
 import ProfileSettings from './pages/ProfileSettings.jsx';
 import ExcludedDomains from './pages/ExcludedDomains.jsx';
+import IntegrationsSettings from './pages/IntegrationsSettings.jsx';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/offers" element={<Offers />} />
         <Route path="/settings/profile" element={<ProfileSettings />} />
         <Route path="/settings/excluded-domains" element={<ExcludedDomains />} />
+        <Route path="/settings/integrations" element={<IntegrationsSettings />} />
       </Routes>
     </Layout>
   );

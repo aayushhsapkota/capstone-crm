@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { callN8n } from '../lib/n8n.js';
+import { sendGmail } from '../lib/gmail.js';
 
 const router = Router();
 
@@ -66,24 +67,22 @@ router.post('/send', async (req, res, next) => {
       where: { id: businessId },
     });
 
-    const result = await callN8n(process.env.N8N_WEBHOOK_SEND_EMAIL, {
-      business,
-      subject,
-      bodyHtml,
-    });
-
-    // Unlike generate-email, the send-email workflow always responds 200 — even on
-    // Gmail failure — with {ok: false, error} instead of a non-2xx status, so the
-    // failure has to be checked explicitly rather than relying on axios to throw.
-    if (result?.ok !== true) {
+    // Sent directly via the Gmail account connected in Integrations settings — this
+    // used to go through an n8n workflow, but Gmail is one of the few integrations a
+    // user configures themselves rather than through n8n (which they don't have UI
+    // access to), so it's simpler for the backend to own sending outright.
+    let result;
+    try {
+      result = await sendGmail({ to: business.email, subject, bodyHtml });
+    } catch (err) {
       await prisma.notification.create({
         data: {
           type: 'SEND_FAILED',
           businessId,
-          message: `Failed to send "${subject}" to ${business.name}: ${result?.error || 'unknown error'}`,
+          message: `Failed to send "${subject}" to ${business.name}: ${err.message}`,
         },
       });
-      return res.status(502).json({ error: result?.error || 'Email send failed' });
+      return res.status(502).json({ error: err.message });
     }
 
     const email = await prisma.email.create({
