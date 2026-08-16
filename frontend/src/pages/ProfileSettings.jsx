@@ -143,12 +143,18 @@ export default function ProfileSettings() {
     setFetchError('');
     try {
       const draft = await scrapeOwnerProfileFromWebsite(fetchUrl.trim());
+      // Website doesn't need extracting — it's exactly the URL just typed into the
+      // fetch box above, stripped to match how this field is stored elsewhere (bare
+      // domain, no protocol, e.g. "website.com" not "https://website.com").
+      const website = fetchUrl.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '');
       // Pre-fills the form only — still requires clicking Save below, same as
       // reviewing an email draft before Send. LLM extraction can be wrong.
       setForm((prev) => ({
         ...prev,
         companyName: draft.companyName || prev.companyName,
         specialisation: draft.specialisation || prev.specialisation,
+        phone: draft.phone || prev.phone,
+        website: website || prev.website,
       }));
       if (draft.services?.length) {
         setServiceRows(draft.services.map(toServiceRow));

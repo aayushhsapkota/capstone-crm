@@ -16,8 +16,8 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// POST /api/owner-profile/scrape — extract companyName/specialisation/services from a
-// website via Firecrawl + Gemini. Returns a draft for the caller to review/edit — never
+// POST /api/owner-profile/scrape — extract companyName/specialisation/phone/services
+// from a website via Firecrawl + Gemini. Returns a draft for the caller to review/edit — never
 // writes to the profile directly, since LLM extraction can be wrong and this is
 // foundational data (same reasoning as why email drafts require an explicit Send).
 router.post('/scrape', async (req, res, next) => {
@@ -29,7 +29,7 @@ router.post('/scrape', async (req, res, next) => {
       return res.status(502).json({ error: draft.error });
     }
 
-    res.json(draft); // { companyName, specialisation, services }
+    res.json(draft); // { companyName, specialisation, phone, services }
   } catch (err) {
     const n8nError = err.response?.data?.error;
     if (n8nError) {

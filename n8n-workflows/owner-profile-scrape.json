@@ -10,8 +10,11 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [-768, 0],
-      "id": "webhook-owner-profile-scrape-0001",
+      "position": [
+        -1280,
+        256
+      ],
+      "id": "64be093d-e2a4-4600-80a7-b0ad63f2865e",
       "name": "Webhook",
       "webhookId": "owner-profile-scrape"
     },
@@ -28,8 +31,11 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-512, 0],
-      "id": "scrape-from-firecrawl-owner-0001",
+      "position": [
+        -1024,
+        256
+      ],
+      "id": "b88e1c94-3ddc-452f-bf23-935666eb1d23",
       "name": "scrape from firecrawl",
       "retryOnFail": true,
       "credentials": {
@@ -43,13 +49,22 @@
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "has-firecrawl-error-owner-cond-0001",
               "leftValue": "={{ $json.error ? true : false }}",
               "rightValue": true,
-              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             }
           ],
           "combinator": "and"
@@ -58,8 +73,11 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-256, 0],
-      "id": "has-firecrawl-error-owner-if-0001",
+      "position": [
+        -768,
+        256
+      ],
+      "id": "c668cd95-3f52-46d1-b7d8-126508002c30",
       "name": "Has Firecrawl Error?"
     },
     {
@@ -68,21 +86,29 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-256, 224],
-      "id": "build-firecrawl-error-owner-0001",
+      "position": [
+        -768,
+        480
+      ],
+      "id": "0056621f-d699-4c56-9f35-4c53cf847c44",
       "name": "Build Firecrawl Error Result"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured company information for the business that owns this website (this is the SENDER's own company profile, not a lead).\n\nFields to extract (leave blank/null or empty array if not present — never invent information):\n- companyName (the company's name)\n- specialisation (a short description of what industry/field this company operates in, e.g. \"Dental Clinic\", \"NDIS & Aged Care Staffing\", \"IT Support\")\n- services: an array of up to 6 objects {service, description}, each a core service or offering this company provides, with a short one-sentence description. Only include services explicitly mentioned in the text.\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If nothing relevant is found for a field, leave it blank/null (or an empty array for services) rather than guessing.",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured company information for the business that owns this website (this is the SENDER's own company profile, not a lead).\n\nFields to extract (leave blank/null or empty array if not present — never invent information):\n- companyName (the company's name)\n- specialisation (a short description of what industry/field this company operates in, e.g. \"Dental Clinic\", \"NDIS & Aged Care Staffing\", \"IT Support\")\n- services: an array of up to 6 objects {service, description}, each a core service or offering this company provides, with a short one-sentence description. Only include services explicitly mentioned in the text.\n\n- phone (the company's primary contact phone number, written exactly as it appears on the site — do not reformat, normalize, or guess a format)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. If nothing relevant is found for a field, leave it blank/null (or an empty array for services) rather than guessing.",
         "hasOutputParser": true,
-        "messages": { "messageValues": [] }
+        "messages": {
+          "messageValues": []
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
-      "position": [0, -128],
-      "id": "ai-extract-owner-profile-0001",
+      "position": [
+        -512,
+        128
+      ],
+      "id": "b12bfa28-7c46-4f83-84be-b24ad321d6b8",
       "name": "AI Extract Owner Profile",
       "retryOnFail": true,
       "onError": "continueRegularOutput"
@@ -94,8 +120,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
-      "position": [-32, 96],
-      "id": "gemini-model-owner-profile-0001",
+      "position": [
+        -544,
+        352
+      ],
+      "id": "e5aa0bc7-8149-4140-adeb-7955e7f87a82",
       "name": "Gemini Model",
       "credentials": {
         "googlePalmApi": {
@@ -106,24 +135,36 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"companyName\": \"Acme Dental Group\",\n  \"specialisation\": \"Dental Clinic\",\n  \"services\": [\n    { \"service\": \"Teeth Whitening\", \"description\": \"Professional in-chair whitening treatments\" },\n    { \"service\": \"Root Canal\", \"description\": \"Pain-free root canal therapy\" }\n  ]\n}"
+        "jsonSchemaExample": "{\n  \"companyName\": \"Acme Dental Group\",\n  \"specialisation\": \"Dental Clinic\",\n  \"phone\": \"(02) 9555 1234\",\n  \"services\": [\n    { \"service\": \"Teeth Whitening\", \"description\": \"Professional in-chair whitening treatments\" },\n    { \"service\": \"Root Canal\", \"description\": \"Pain-free root canal therapy\" }\n  ]\n}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
-      "position": [128, 96],
-      "id": "structured-output-parser-owner-0001",
+      "position": [
+        -384,
+        352
+      ],
+      "id": "c03849ac-7335-4f9f-9933-8826291f7d10",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "has-gen-error-owner-cond-0001",
               "leftValue": "={{ $json.error ? true : false }}",
               "rightValue": true,
-              "operator": { "type": "boolean", "operation": "equals", "name": "filter.operator.equals" }
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             }
           ],
           "combinator": "and"
@@ -132,20 +173,28 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [256, -128],
-      "id": "has-gen-error-owner-if-0001",
+      "position": [
+        -256,
+        128
+      ],
+      "id": "92a1c188-f465-4917-9ef5-7b904dbd22d2",
       "name": "Has Generation Error?"
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { \"error\": $json.error } }}",
-        "options": { "responseCode": 500 }
+        "options": {
+          "responseCode": 500
+        }
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [512, 0],
-      "id": "respond-with-error-owner-0001",
+      "position": [
+        0,
+        256
+      ],
+      "id": "f2e74814-d4cc-442b-b5f5-8f67e2d1aada",
       "name": "Respond With Error"
     },
     {
@@ -156,33 +205,123 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [512, -256],
-      "id": "respond-with-profile-draft-0001",
+      "position": [
+        0,
+        0
+      ],
+      "id": "6c346dbc-990f-41a7-b9ce-759dc62654a6",
       "name": "Respond With Profile Draft"
     }
   ],
+  "pinData": {},
   "connections": {
-    "Webhook": { "main": [[{ "node": "scrape from firecrawl", "type": "main", "index": 0 }]] },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "scrape from firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "scrape from firecrawl": {
       "main": [
-        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }],
-        [{ "node": "Has Firecrawl Error?", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Has Firecrawl Error?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Has Firecrawl Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Has Firecrawl Error?": {
       "main": [
-        [{ "node": "Build Firecrawl Error Result", "type": "main", "index": 0 }],
-        [{ "node": "AI Extract Owner Profile", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Build Firecrawl Error Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Extract Owner Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Build Firecrawl Error Result": { "main": [[{ "node": "Respond With Error", "type": "main", "index": 0 }]] },
-    "Gemini Model": { "ai_languageModel": [[{ "node": "AI Extract Owner Profile", "type": "ai_languageModel", "index": 0 }]] },
-    "Structured Output Parser": { "ai_outputParser": [[{ "node": "AI Extract Owner Profile", "type": "ai_outputParser", "index": 0 }]] },
-    "AI Extract Owner Profile": { "main": [[{ "node": "Has Generation Error?", "type": "main", "index": 0 }]] },
+    "Build Firecrawl Error Result": {
+      "main": [
+        [
+          {
+            "node": "Respond With Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Extract Owner Profile",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Extract Owner Profile",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Extract Owner Profile": {
+      "main": [
+        [
+          {
+            "node": "Has Generation Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Has Generation Error?": {
       "main": [
-        [{ "node": "Respond With Error", "type": "main", "index": 0 }],
-        [{ "node": "Respond With Profile Draft", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Respond With Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond With Profile Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
@@ -191,10 +330,10 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b3f1a001-owner-profile-scrape-v1",
+  "versionId": "3bbaed10-2c72-4c2c-8c78-c927ee593e65",
   "meta": {
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
   },
-  "id": "OwnerProfileScrapeWF001",
+  "id": "ydBHxMBnq0vo1ePF",
   "tags": []
 }

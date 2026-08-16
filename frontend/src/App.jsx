@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import QueryManager from './pages/QueryManager.jsx';
 import LeadReview from './pages/LeadReview.jsx';
@@ -15,7 +15,10 @@ export default function App() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Console />} />
+        {/* Redirect rather than rendering Console directly here — the Sidebar's
+            "Businesses" NavLink only matches "/console", so landing on "/" without
+            actually navigating there left it unhighlighted despite showing the same page. */}
+        <Route path="/" element={<Navigate to="/console" replace />} />
         <Route path="/queries" element={<QueryManager />} />
         <Route path="/leads" element={<LeadReview />} />
         <Route path="/console" element={<Console />} />
