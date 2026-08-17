@@ -10,26 +10,37 @@ import Offers from './pages/Offers.jsx';
 import ProfileSettings from './pages/ProfileSettings.jsx';
 import ExcludedDomains from './pages/ExcludedDomains.jsx';
 import IntegrationsSettings from './pages/IntegrationsSettings.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 
 export default function App() {
   return (
-    <Layout>
-      <Routes>
-        {/* Redirect rather than rendering Console directly here — the Sidebar's
-            "Businesses" NavLink only matches "/console", so landing on "/" without
-            actually navigating there left it unhighlighted despite showing the same page. */}
-        <Route path="/" element={<Navigate to="/console" replace />} />
-        <Route path="/queries" element={<QueryManager />} />
-        <Route path="/leads" element={<LeadReview />} />
-        <Route path="/console" element={<Console />} />
-        <Route path="/businesses/:id" element={<BusinessProfile />} />
-        <Route path="/campaigns" element={<Campaigns />} />
-        <Route path="/campaigns/:id" element={<CampaignDetail />} />
-        <Route path="/offers" element={<Offers />} />
-        <Route path="/settings/profile" element={<ProfileSettings />} />
-        <Route path="/settings/excluded-domains" element={<ExcludedDomains />} />
-        <Route path="/settings/integrations" element={<IntegrationsSettings />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      {/* Public, Layout-free — must be reachable without the app's sidebar/header
+          chrome, since this URL is submitted to Google for OAuth verification review. */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route
+        path="/*"
+        element={
+          <Layout>
+            <Routes>
+              {/* Redirect rather than rendering Console directly here — the Sidebar's
+                  "Businesses" NavLink only matches "/console", so landing on "/" without
+                  actually navigating there left it unhighlighted despite showing the same page. */}
+              <Route path="/" element={<Navigate to="/console" replace />} />
+              <Route path="/queries" element={<QueryManager />} />
+              <Route path="/leads" element={<LeadReview />} />
+              <Route path="/console" element={<Console />} />
+              <Route path="/businesses/:id" element={<BusinessProfile />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/campaigns/:id" element={<CampaignDetail />} />
+              <Route path="/offers" element={<Offers />} />
+              <Route path="/settings/profile" element={<ProfileSettings />} />
+              <Route path="/settings/excluded-domains" element={<ExcludedDomains />} />
+              <Route path="/settings/integrations" element={<IntegrationsSettings />} />
+            </Routes>
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
