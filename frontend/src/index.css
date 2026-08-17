@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/* A light sweep across a card's surface — used to draw the eye to AI-powered actions
+   (e.g. Owner Profile's "Fetch from website") without relying on color alone, which
+   would otherwise blend in with the rest of a fairly neutral, slate-toned UI. */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 3s ease-in-out infinite;
+}

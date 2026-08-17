@@ -233,29 +233,42 @@ export default function ProfileSettings() {
       <h1 className="text-2xl font-semibold text-slate-800">Profile Settings</h1>
       <p className="text-slate-500 mt-1">Company info, services, and email signature used across every generated email.</p>
 
-      <div className="mt-6 p-4 border border-slate-200 rounded-lg bg-slate-50">
-        <h3 className="text-sm font-semibold text-slate-700">✦ Fetch from website</h3>
-        <p className="text-xs text-slate-500 mt-1">
+      {/* overflow-hidden + the absolutely-positioned sweep below are what make this
+          "shiny" — a diagonal highlight animating across the card, same idea as the
+          skeleton-loading shimmer effect but slower and decorative rather than a
+          loading state. Gradient + colored border set it apart from every other
+          plain white/slate card on this page, since it's the one action here that's
+          genuinely a shortcut (AI-filled fields) rather than manual data entry. */}
+      <div className="relative mt-6 max-w-xl overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 p-4 shadow-sm">
+        <div className="pointer-events-none absolute inset-0 -skew-x-12 animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+
+        <div className="relative flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-sm text-white shadow-sm">
+            ✦
+          </span>
+          <h3 className="text-sm font-semibold text-slate-800">Fetch from website</h3>
+        </div>
+        <p className="relative mt-1.5 text-xs text-slate-600">
           Have a company website? We'll pull in the name, specialisation, and services to
           save you typing them out — review and edit before saving.
         </p>
         {fetchError && (
-          <div className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          <div className="relative mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {fetchError}
           </div>
         )}
-        <div className="mt-3 flex gap-2 max-w-xl">
+        <div className="relative mt-3 flex gap-2">
           <input
             type="text"
             value={fetchUrl}
             onChange={(e) => setFetchUrl(e.target.value)}
             placeholder="https://yourcompany.com"
-            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+            className="flex-1 border border-indigo-200 rounded-md px-3 py-2 text-sm bg-white/80 focus:outline-none focus:ring-1 focus:ring-indigo-400"
           />
           <button
             onClick={handleFetchFromWebsite}
             disabled={fetching || !fetchUrl.trim()}
-            className="px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-white disabled:opacity-50"
+            className="px-3 py-2 text-sm text-white rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 disabled:opacity-50 shrink-0"
           >
             {fetching ? 'Fetching…' : '✦ Fetch'}
           </button>

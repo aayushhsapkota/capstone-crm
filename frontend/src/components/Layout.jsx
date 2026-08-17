@@ -3,6 +3,7 @@ import Sidebar from './Sidebar.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import ProfileMenu from './ProfileMenu.jsx';
 import Toast from './Toast.jsx';
+import WelcomeModal from './WelcomeModal.jsx';
 import { useToast } from '../hooks/useToast.js';
 import { ScrapeTrackerProvider } from '../context/ScrapeTracker.jsx';
 import { CampaignTrackerProvider } from '../context/CampaignTracker.jsx';
@@ -63,6 +64,7 @@ export default function Layout({ children }) {
               </div>
             </div>
             <Toast toast={toast} />
+            <WelcomeModal />
           </CampaignTrackerProvider>
         </ScrapeTrackerProvider>
       </ToastProvider>

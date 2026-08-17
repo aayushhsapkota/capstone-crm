@@ -5,6 +5,7 @@ import BulkSendModal from '../components/BulkSendModal.jsx';
 import AddBusinessModal from '../components/AddBusinessModal.jsx';
 import { STATUS_STYLES } from '../components/StatusBadge.jsx';
 import { useShowToast } from '../context/ToastContext.jsx';
+import SetupChecklist from '../components/SetupChecklist.jsx';
 
 // A single dropdown mixing three different underlying filters (status, unsubscribed,
 // and "no email") — the value's prefix says which one a given option maps to, decoded
@@ -165,6 +166,8 @@ export default function BusinessesIndex() {
 
   return (
     <div>
+      <SetupChecklist />
+
       <h1 className="text-2xl font-semibold text-slate-800">Businesses</h1>
       <p className="text-slate-500 mt-1">Every business you've scraped or added, in one place.</p>
 
