@@ -17,6 +17,7 @@ import webhooksRouter from './routes/webhooks.js';
 import publicRouter from './routes/public.js';
 import uploadsRouter from './routes/uploads.js';
 import integrationsRouter from './routes/integrations.js';
+import adminRouter from './routes/admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/webhooks', webhooksRouter);
 app.use('/api/public', publicRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/integrations', integrationsRouter);
+app.use('/api/admin', adminRouter);
 
 app.use(errorHandler);
 
