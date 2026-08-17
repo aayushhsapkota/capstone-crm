@@ -12,12 +12,14 @@ import ExcludedDomains from './pages/ExcludedDomains.jsx';
 import IntegrationsSettings from './pages/IntegrationsSettings.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsOfService from './pages/TermsOfService.jsx';
+import Home from './pages/Home.jsx';
 
 export default function App() {
   return (
     <Routes>
       {/* Public, Layout-free — must be reachable without the app's sidebar/header
           chrome, since these URLs are submitted to Google for OAuth verification review. */}
+      <Route path="/home" element={<Home />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route
