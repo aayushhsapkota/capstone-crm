@@ -30,7 +30,7 @@ export default function App() {
               {/* Redirect rather than rendering Console directly here — the Sidebar's
                   "Businesses" NavLink only matches "/console", so landing on "/" without
                   actually navigating there left it unhighlighted despite showing the same page. */}
-              <Route path="/" element={<Navigate to="/console" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/queries" element={<QueryManager />} />
               <Route path="/leads" element={<LeadReview />} />
               <Route path="/console" element={<Console />} />

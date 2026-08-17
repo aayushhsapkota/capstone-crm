@@ -3,11 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Capstone CRM is an outbound lead-generation and email outreach tool for small businesses. It finds prospects, gathers details from their public websites, and sends personalized outreach emails through the Gmail account you connect and control."
+    />
     <link rel="icon" type="image/png" href="/logo.png" />
     <title>Capstone CRM</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Visible only until the React app mounts and replaces this (or if JS is
+           disabled) — SPA client-side rendering means the raw HTML body is otherwise
+           empty, which some automated reviewers (e.g. Google's OAuth branding check)
+           read without executing JavaScript, seeing nothing to verify the app against. -->
+      <div style="font-family: system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 20px; color: #1e293b;">
+        <h1 style="font-size: 1.5rem; font-weight: 700;">Capstone CRM</h1>
+        <p style="color: #64748b; line-height: 1.6;">
+          Capstone CRM is an outbound lead-generation and email outreach tool for small
+          businesses. It finds prospects, gathers useful details about them from their public
+          websites, and sends personalized outreach emails through the Gmail account you connect
+          and control.
+        </p>
+        <p><a href="/privacy" style="color: #2563eb;">Privacy Policy</a></p>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
