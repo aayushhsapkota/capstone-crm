@@ -33,7 +33,11 @@ export default function PrivacyPolicy() {
           leads, gather information about them, and send outreach emails from the user's own
           Gmail account. This policy explains what information Capstone collects, how it's used,
           and — since Capstone connects to your Google Account — specifically how it handles data
-          obtained through Google APIs.
+          obtained through Google APIs. Also see our{' '}
+          <Link to="/terms" className="text-blue-600 hover:underline">
+            Terms of Service
+          </Link>
+          .
         </p>
 
         <Section title="Information We Collect">
