@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { getIntegrationsStatus, disconnectGmail, GMAIL_CONNECT_URL } from '../api/integrations.js';
 
 const ERROR_MESSAGES = {
@@ -136,6 +136,15 @@ export default function IntegrationsSettings() {
             </a>
           )}
         </div>
+
+        <p className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          We'll only use this permission to send emails on your behalf — Capstone never reads,
+          stores, or shares the contents of your inbox. See our{' '}
+          <Link to="/privacy" className="text-blue-600 hover:underline">
+            Privacy Policy
+          </Link>{' '}
+          for details.
+        </p>
       </section>
     </div>
   );
