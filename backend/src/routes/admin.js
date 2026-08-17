@@ -24,10 +24,9 @@ function validateSecret(req, res) {
 router.post('/reset', async (req, res, next) => {
   if (!validateSecret(req, res)) return;
   try {
-    // Gathered before deletion — need these URLs to clean up local upload files
-    // after the rows referencing them are gone.
-    const [businesses, offers, profile] = await Promise.all([
-      prisma.business.findMany({ select: { imageUrl: true } }),
+    // Gathered before deletion — need these URLs to clean up local upload files after
+    // the rows referencing them are gone.
+    const [offers, profile] = await Promise.all([
       prisma.offer.findMany({ select: { imageUrl: true } }),
       prisma.ownerProfile.findFirst({ select: { logoUrl: true, heroImageUrl: true } }),
     ]);
@@ -50,7 +49,6 @@ router.post('/reset', async (req, res, next) => {
     // Best-effort — deleteUploadedFileIfLocal already no-ops on external URLs and
     // already-missing files, so nothing here needs to block the response.
     await Promise.all([
-      ...businesses.map((b) => deleteUploadedFileIfLocal(b.imageUrl)),
       ...offers.map((o) => deleteUploadedFileIfLocal(o.imageUrl)),
       deleteUploadedFileIfLocal(profile?.logoUrl),
       deleteUploadedFileIfLocal(profile?.heroImageUrl),
