@@ -11,11 +11,11 @@
     <title>Capstone CRM</title>
   </head>
   <body>
-    <div id="root">
-      <!-- Visible only until the React app mounts and replaces this (or if JS is
-           disabled) — SPA client-side rendering means the raw HTML body is otherwise
-           empty, which some automated reviewers (e.g. Google's OAuth branding check)
-           read without executing JavaScript, seeing nothing to verify the app against. -->
+    <!-- <noscript> so browsers with JS enabled never render this (no flash before React
+         mounts) — it exists only for clients that don't execute JS at all, like a plain
+         HTML fetch/curl or a non-JS-executing automated reviewer (e.g. Google's OAuth
+         branding check), which would otherwise see an empty <div id="root">. -->
+    <noscript>
       <div style="font-family: system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 20px; color: #1e293b;">
         <h1 style="font-size: 1.5rem; font-weight: 700;">Capstone CRM</h1>
         <p style="color: #64748b; line-height: 1.6;">
@@ -26,7 +26,8 @@
         </p>
         <p><a href="/privacy" style="color: #2563eb;">Privacy Policy</a></p>
       </div>
-    </div>
+    </noscript>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

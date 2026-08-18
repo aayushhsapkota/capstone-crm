@@ -17,6 +17,12 @@ import Home from './pages/Home.jsx';
 export default function App() {
   return (
     <Routes>
+      {/* Resolved at this top level, not inside the Layout-wrapped routes below — its
+          target (/home) lives here too, so this redirects in a single pass instead of
+          mounting Layout/Sidebar first just to redirect again, which caused a visible
+          flash of the app chrome before landing on the homepage. */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+
       {/* Public, Layout-free — must be reachable without the app's sidebar/header
           chrome, since these URLs are submitted to Google for OAuth verification review. */}
       <Route path="/home" element={<Home />} />
@@ -27,10 +33,6 @@ export default function App() {
         element={
           <Layout>
             <Routes>
-              {/* Redirect rather than rendering Console directly here — the Sidebar's
-                  "Businesses" NavLink only matches "/console", so landing on "/" without
-                  actually navigating there left it unhighlighted despite showing the same page. */}
-              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/queries" element={<QueryManager />} />
               <Route path="/leads" element={<LeadReview />} />
               <Route path="/console" element={<Console />} />
