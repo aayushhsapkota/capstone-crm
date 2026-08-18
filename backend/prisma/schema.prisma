@@ -192,12 +192,9 @@ enum NotificationType {
 model OwnerProfile {
   id             String   @id @default(uuid())
   companyName    String
-  senderEmail    String
   senderName     String
   specialisation String?
-  slogan         String?  // Tagline shown in the generated email signature
   website        String?
-  phone          String?
   services       Json?    // Array of service name strings
   signatureHtml  String?
   logoUrl        String?

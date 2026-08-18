@@ -106,7 +106,7 @@ export default function ProfileMenu() {
                 {profile?.senderName || 'Your Name'}
               </p>
               <p className="text-xs text-slate-400 truncate mt-0.5">
-                {profile?.senderEmail || 'you@example.com'}
+                {profile?.gmailConnectedEmail || 'Gmail not connected'}
               </p>
             </div>
 

@@ -46,11 +46,8 @@ export default function ProfileSettings() {
         id: profile.id,
         companyName: profile.companyName || '',
         senderName: profile.senderName || '',
-        senderEmail: profile.senderEmail || '',
         specialisation: profile.specialisation || '',
-        slogan: profile.slogan || '',
         website: profile.website || '',
-        phone: profile.phone || '',
         signatureHtml: profile.signatureHtml || '',
         logoUrl: profile.logoUrl || '',
         heroImageUrl: profile.heroImageUrl || '',
@@ -91,14 +88,17 @@ export default function ProfileSettings() {
     [form]
   );
 
+  // Fixed placeholder text rather than the live profile fields — the signature is a
+  // starting point the user hand-edits (visually or as raw HTML) afterward, not a
+  // live-bound template, so there's no need to keep it in sync with the profile form.
   const handleGenerateSignature = () => {
     const html = buildSignatureHtml({
-      companyName: form.companyName,
-      slogan: form.slogan,
-      senderEmail: form.senderEmail,
-      website: form.website,
-      phone: form.phone,
-      logoUrl: form.logoUrl,
+      companyName: 'Company',
+      slogan: 'Your company slogan',
+      senderEmail: 'info@example.com',
+      website: 'www.yourwebsite.com',
+      phone: '0412 345 678',
+      logoUrl: null,
     });
     handleFieldChange('signatureHtml', html);
     if (signatureEditorRef.current) signatureEditorRef.current.innerHTML = html;
@@ -153,7 +153,6 @@ export default function ProfileSettings() {
         ...prev,
         companyName: draft.companyName || prev.companyName,
         specialisation: draft.specialisation || prev.specialisation,
-        phone: draft.phone || prev.phone,
         website: website || prev.website,
       }));
       if (draft.services?.length) {
@@ -186,11 +185,8 @@ export default function ProfileSettings() {
       const updated = await saveOwnerProfile({
         companyName: form.companyName,
         senderName: form.senderName,
-        senderEmail: form.senderEmail,
         specialisation: form.specialisation || null,
-        slogan: form.slogan || null,
         website: form.website || null,
-        phone: form.phone || null,
         signatureHtml: form.signatureHtml || null,
         logoUrl: logoUrl || null,
         heroImageUrl: heroImageUrl || null,
@@ -297,15 +293,9 @@ export default function ProfileSettings() {
               onChange={(e) => handleFieldChange('senderName', e.target.value)}
               className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
             />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Sender Email</label>
-            <input
-              type="email"
-              value={form.senderEmail}
-              onChange={(e) => handleFieldChange('senderEmail', e.target.value)}
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-            />
+            <p className="text-xs text-slate-400 mt-1">
+              Shown as the sender name on every email you send — recipients see this, not your Gmail account's own name.
+            </p>
           </div>
           <div>
             <label className="block text-xs text-slate-500 mb-1">Specialisation</label>
@@ -317,32 +307,12 @@ export default function ProfileSettings() {
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Slogan</label>
-            <input
-              type="text"
-              value={form.slogan}
-              onChange={(e) => handleFieldChange('slogan', e.target.value)}
-              placeholder={`e.g. "Care That Feels Like Family"`}
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-            />
-          </div>
-          <div>
             <label className="block text-xs text-slate-500 mb-1">Website</label>
             <input
               type="text"
               value={form.website}
               onChange={(e) => handleFieldChange('website', e.target.value)}
               placeholder="www.yourcompany.com"
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Phone</label>
-            <input
-              type="text"
-              value={form.phone}
-              onChange={(e) => handleFieldChange('phone', e.target.value)}
-              placeholder="0400 000 000"
               className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
             />
           </div>
@@ -427,7 +397,7 @@ export default function ProfileSettings() {
             onClick={handleGenerateSignature}
             className="text-xs px-2 py-1 border border-slate-300 rounded-md hover:bg-slate-50 shrink-0"
           >
-            ✦ Generate from profile
+            ✦ Insert template
           </button>
         </div>
 
@@ -458,7 +428,7 @@ export default function ProfileSettings() {
               never gets torn down and rebuilt by switching tabs. */}
           <div className={`mt-2 ${signatureMode === 'visual' ? '' : 'hidden'}`}>
             <p className={`text-xs text-slate-400 mb-1 ${signatureEmpty ? '' : 'hidden'}`}>
-              Nothing yet — try "Generate from profile".
+              Nothing yet — try "Insert template".
             </p>
             <div
               ref={handleSignatureEditorRef}

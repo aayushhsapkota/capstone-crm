@@ -26,7 +26,6 @@ export async function getOrCreateOwnerProfile() {
       data: {
         companyName: 'My Company',
         senderName: 'Your Name',
-        senderEmail: 'you@example.com',
         excludeSites: DEFAULT_EXCLUDE_SITES,
       },
     });
