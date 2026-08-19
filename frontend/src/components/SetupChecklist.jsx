@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { GMAIL_CONNECT_URL } from '../api/integrations.js';
 import { useSetupStatus } from '../hooks/useSetupStatus.js';
 
 function CheckIcon() {
@@ -10,7 +9,7 @@ function CheckIcon() {
   );
 }
 
-function StepCard({ number, title, description, done, actionLabel, actionHref, actionTo }) {
+function StepCard({ number, title, description, done, actionLabel, actionTo }) {
   return (
     <div className="flex items-start justify-between gap-3 p-3 border border-slate-200 rounded-lg">
       <div className="flex items-start gap-3 min-w-0">
@@ -29,20 +28,13 @@ function StepCard({ number, title, description, done, actionLabel, actionHref, a
 
       {done ? (
         <span className="shrink-0 text-xs font-medium text-green-600">Done</span>
-      ) : actionTo ? (
+      ) : (
         <Link
           to={actionTo}
           className="shrink-0 px-3 py-1.5 text-xs border border-slate-300 rounded-md hover:bg-slate-50 whitespace-nowrap"
         >
           {actionLabel}
         </Link>
-      ) : (
-        <a
-          href={actionHref}
-          className="shrink-0 px-3 py-1.5 text-xs border border-slate-300 rounded-md hover:bg-slate-50 whitespace-nowrap"
-        >
-          {actionLabel}
-        </a>
       )}
     </div>
   );
@@ -84,7 +76,7 @@ export default function SetupChecklist() {
           description="Send campaigns from your inbox."
           done={gmailDone}
           actionLabel="Connect"
-          actionHref={GMAIL_CONNECT_URL}
+          actionTo="/settings/integrations"
         />
       </div>
     </div>
