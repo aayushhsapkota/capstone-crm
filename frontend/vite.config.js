@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://api.capstonecrm.au/api', 
+        target: 'https://api.capstonecrm.au',
         changeOrigin: true,
       },
     },
