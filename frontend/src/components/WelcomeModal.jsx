@@ -9,10 +9,10 @@ const DISMISSED_KEY = 'capstone_welcome_dismissed';
 // its own whether there's anything to show.
 export default function WelcomeModal() {
   const { profileDone, gmailDone, loading } = useSetupStatus();
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === 'true');
+  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(DISMISSED_KEY) === 'true');
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISSED_KEY, 'true');
+    sessionStorage.setItem(DISMISSED_KEY, 'true');
     setDismissed(true);
   };
 
