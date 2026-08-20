@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        416,
+        -208
       ],
-      "id": "292eb2e8-3ac6-43df-958f-31a72f43477d",
+      "id": "e160ce2e-6e9d-45ac-908f-b040355b5cf8",
       "name": "Webhook",
       "webhookId": "query-search"
     },
@@ -32,10 +32,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        0
+        640,
+        -208
       ],
-      "id": "ff65a0f1-9ab8-4dfb-bcf8-2439d16b143a",
+      "id": "c87cc79c-aa86-4f0e-9c3d-89fa459a298a",
       "name": "Firecrawl Search",
       "retryOnFail": true,
       "credentials": {
@@ -53,16 +53,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        0
+        864,
+        -208
       ],
-      "id": "5698d549-b1dc-4ee1-be19-ac9c650c01ed",
+      "id": "9a519b2e-5d3c-4770-b1b0-a17d0c24de8c",
       "name": "Filter to URL and Name"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.myn8n.au/api/webhooks/query-results",
+        "url": "=https://api.capstonecrm.au/api/webhooks/query-results",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        896,
-        0
+        1312,
+        -208
       ],
-      "id": "02a08747-1026-47d1-a633-f9e9911d02e7",
+      "id": "9d9ff1ca-e98f-4740-af8c-6de305effecd",
       "name": "POST Results to Backend",
       "alwaysOutputData": false,
       "executeOnce": false,
@@ -98,10 +98,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        1104,
-        0
+        1520,
+        -208
       ],
-      "id": "f06e67d7-126f-4d93-aab8-039abba20566",
+      "id": "5f2d3ef0-5f31-465c-a48f-f5f6d7ce44d6",
       "name": "Respond to Webhook",
       "retryOnFail": true,
       "onError": "continueErrorOutput"
@@ -113,10 +113,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        672,
-        0
+        1088,
+        -208
       ],
-      "id": "ceaaaf72-df41-438d-9288-3a285683bbdb",
+      "id": "4b46d19f-a7a0-4dd2-bc28-26b479a9bdde",
       "name": "Combine all results into one object."
     }
   ],
@@ -191,7 +191,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "d59112ac-08e3-4ec9-956f-2a01b8cbac0a",
+  "versionId": "6a125dd7-5e94-4a85-9492-108a7209a5c3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"

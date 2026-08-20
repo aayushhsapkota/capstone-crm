@@ -53,7 +53,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n2. Respond with ONLY the JSON object matching the required schema — no extra commentary, no markdown code fences, and every field must be a plain string (not an array, not an object, and never null — use \"\" instead), even for multi-item fields like services or awards.",
+        "text": "=You are a data extraction assistant.\n\nGoal:\nFrom the given markdown text {{ $json.data.markdown }}, extract structured business information. \n\nFields to extract (leave as an empty string \"\" if not present — never output null; the schema requires every field to be a string):\n- name (the business name)\n- specialisation (type of business, e.g., dental clinic, medical centre, physiotherapist, GP, etc.)\n- location (address, suburb, or city — whichever is available)\n- phone (official contact numbers, comma separated if there are many)\n- email (official contact email)\n- yearsExperience (if explicitly mentioned, e.g., \"over 10 years of experience\")\n- services (main services or treatments, comma-separated)\n- awards (awards, recognitions, certifications, AND notable achievements — combine all of these into this single field)\n\nInstructions:\n1. Keep your output only based on the provided markdown — do not assume, guess, or invent information.\n",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -72,8 +72,7 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"output\": {\n    \"name\": \"ABC Clinic\",\n    \"specialisation\": \"Dental Clinic\",\n    \"location\": \"Sydney, NSW\",\n    \"phone\": \"(02) 9232 2311\",\n    \"email\": \"contact@abcclinic.com\",\n    \"yearsExperience\": \"10+\",\n    \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n    \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n  }\n}",
-        "autoFix": true
+        "jsonSchemaExample": "{\n  \"name\": \"ABC Clinic\",\n  \"specialisation\": \"Dental Clinic\",\n  \"location\": \"Sydney, NSW\",\n  \"phone\": \"(02) 9232 2311\",\n  \"email\": \"contact@abcclinic.com\",\n  \"yearsExperience\": \"10+\",\n  \"services\": \"Teeth Whitening, Root Canal, Orthodontics\",\n  \"awards\": \"Best Dental Clinic 2022; Certified Invisalign Provider\"\n}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
@@ -106,7 +105,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        584,
+        592,
         560
       ],
       "id": "c3395db1-3df0-4a11-b17d-380b1b44b528",
@@ -156,7 +155,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.myn8n.au/api/webhooks/scrape-complete",
+        "url": "https://api.capstonecrm.au/api/webhooks/scrape-complete",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -240,26 +239,6 @@
       ],
       "id": "cf0410b5-da44-4464-90f1-a2a2f9cd9474",
       "name": "Build Error Result"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-flash",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        656,
-        1184
-      ],
-      "id": "3f3ce292-aaab-4215-8323-20c5a9e3b01c",
-      "name": "Google Gemini Chat Model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "05WkRoe0PSJh3ZYO",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
     }
   ],
   "pinData": {
@@ -272,7 +251,7 @@
             "x-real-ip": "13.238.25.120",
             "x-forwarded-for": "13.238.25.120",
             "x-forwarded-proto": "https",
-            "content-length": "1058",
+            "content-length": "1873",
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "user-agent": "axios/1.16.1",
@@ -283,40 +262,64 @@
           "body": {
             "results": [
               {
-                "id": "0324dd36-0a80-4d09-aa5d-f76c35a8ddc0",
-                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
-                "url": "https://www.mayflowersydney.com/site/home",
-                "businessName": "Mayflower Dental in Sydney | Your Dentist in Sydney",
+                "id": "d83b8e20-e4fe-4fbd-8eb6-4af9bb95e74c",
+                "queryId": "47d1f26e-1c33-4c96-b941-288d04c918c4",
+                "url": "https://www.sydneyphysioclinic.com.au/?srsltid=AfmBOorkWm7AoAlNhX2f_PAVmY-0GGHzIti2s2h5yOylUwGPQSJyXa5a",
+                "businessName": "Sydney CBD Physio Clinic | Top-Rated Physiotherapy ...",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T13:24:30.569Z",
-                "updatedAt": "2026-08-14T13:24:30.569Z"
+                "createdAt": "2026-08-14T13:38:32.254Z",
+                "updatedAt": "2026-08-14T13:38:32.254Z"
               },
               {
-                "id": "b8062dbe-de88-4ff9-b56d-bf439249f533",
-                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
-                "url": "https://slhd.health.nsw.gov.au/sydney-dental",
-                "businessName": "Sydney Dental Hospital",
+                "id": "c4159981-3969-4f41-b0e6-aa74389e22fd",
+                "queryId": "47d1f26e-1c33-4c96-b941-288d04c918c4",
+                "url": "https://www.sydneyphysio.com.au/",
+                "businessName": "Sydney Physiotherapy – Sydney CBD physio clinic",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T13:24:30.569Z",
-                "updatedAt": "2026-08-14T13:24:30.569Z"
+                "createdAt": "2026-08-14T13:38:32.254Z",
+                "updatedAt": "2026-08-14T13:38:32.254Z"
               },
               {
-                "id": "f2036c82-cbb8-4504-aa30-9e8b5e2e157c",
-                "queryId": "e122c21f-7a16-4f3b-8654-09638c2ddc7e",
-                "url": "https://dental99.com.au/",
-                "businessName": "Dental 99 | Fixed-price dental care | Affordable dentist",
+                "id": "aa50bb43-37d2-4b7b-a9e7-d1d92abca0ee",
+                "queryId": "47d1f26e-1c33-4c96-b941-288d04c918c4",
+                "url": "https://www.instagram.com/sydneyphysioclinic/",
+                "businessName": "Sydney Physio Clinic (@sydneyphysioclinic)",
                 "flagged": false,
                 "flagReason": null,
                 "scrapedAt": null,
                 "businessId": null,
-                "createdAt": "2026-08-14T13:24:30.569Z",
-                "updatedAt": "2026-08-14T13:24:30.569Z"
+                "createdAt": "2026-08-14T13:38:32.254Z",
+                "updatedAt": "2026-08-14T13:38:32.254Z"
+              },
+              {
+                "id": "ed45e4e4-58cc-429c-96cc-1b5fc7597054",
+                "queryId": "47d1f26e-1c33-4c96-b941-288d04c918c4",
+                "url": "https://www.thesportsclinic.com.au/",
+                "businessName": "The Sports Clinic @ The University of Sydney | Sports ...",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T13:38:32.254Z",
+                "updatedAt": "2026-08-14T13:38:32.254Z"
+              },
+              {
+                "id": "8731db65-3540-4aa3-90a6-aae207e4f2e8",
+                "queryId": "47d1f26e-1c33-4c96-b941-288d04c918c4",
+                "url": "https://www.sydneypelvicclinic.com.au/",
+                "businessName": "Comprehensive Pelvic Health Services at Sydney Pelvic Clinic",
+                "flagged": false,
+                "flagReason": null,
+                "scrapedAt": null,
+                "businessId": null,
+                "createdAt": "2026-08-14T13:38:32.254Z",
+                "updatedAt": "2026-08-14T13:38:32.254Z"
               }
             ]
           },
@@ -482,17 +485,6 @@
           }
         ]
       ]
-    },
-    "Google Gemini Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": true,
@@ -500,7 +492,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "f5c2d558-9df8-45be-8afb-c61f23f47739",
+  "versionId": "b9b53392-aed1-4cbe-b8c8-7be7b1e4904d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "deaf5bbb106a6f969a7a9985b18dcbb99933cae8e52175ee51ca11849aa6554b"
