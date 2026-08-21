@@ -131,15 +131,18 @@ export default function QueryManager() {
           placeholder="e.g. dental clinics in Sydney NSW"
           className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
         />
-        <input
-          type="number"
-          min={1}
-          max={20}
-          value={limit}
-          onChange={(e) => setLimit(e.target.value)}
-          title="Number of results to fetch"
-          className="w-16 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-slate-400"
-        />
+        <label className="flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
+          Results
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={limit}
+            onChange={(e) => setLimit(e.target.value)}
+            title="Number of results to fetch"
+            className="w-16 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-slate-400"
+          />
+        </label>
         <button
           type="submit"
           disabled={submitting || !text.trim()}
