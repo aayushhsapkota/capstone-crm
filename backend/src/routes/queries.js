@@ -49,10 +49,18 @@ async function computeQueryStats(queryIds) {
     const failed = failedByQuery[queryId];
     const scrapedCount = scraped?._count._all || 0;
     const failedCount = failed?._count._all || 0;
+    const pendingCount = pendingByQuery[queryId] || 0;
 
     let scrapeStatus;
     if (scrapedCount === 0 && failedCount === 0) {
       scrapeStatus = 'NOT_STARTED';
+    } else if (pendingCount > 0) {
+      // Some results were scraped/flagged, but others were never attempted at all —
+      // e.g. "Scrape Selected" only targeted a subset. Checked before failedCount so
+      // this takes priority over COMPLETED_WITH_FAILURES too: leads still pending
+      // means the query isn't "done" in either sense yet, however the attempted ones
+      // turned out.
+      scrapeStatus = 'PARTIALLY_COMPLETED';
     } else if (failedCount === 0) {
       scrapeStatus = 'COMPLETED';
     } else {
