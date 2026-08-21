@@ -7,7 +7,10 @@ function getOAuthClient() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_OAUTH_CLIENT_ID,
     process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-    process.env.GOOGLE_OAUTH_REDIRECT_URI
+    // Derived from BACKEND_PUBLIC_URL rather than its own env var — this must exactly
+    // match the callback route below AND the "Authorized redirect URI" registered in
+    // Google Cloud Console.
+    `${process.env.BACKEND_PUBLIC_URL}/api/integrations/gmail/callback`
   );
 }
 
