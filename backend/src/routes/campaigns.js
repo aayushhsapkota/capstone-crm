@@ -132,10 +132,16 @@ async function processCampaign(campaignId, offerId, delaySeconds) {
         data: { sentCount: { increment: 1 } },
       });
     } catch (err) {
-      // err.response?.data?.error carries the real n8n/Gemini/Gmail failure message
-      // when callN8n's axios call threw (e.g. generate-email's 500); err.message is
-      // the fallback for errors thrown manually above (e.g. the {ok: false} case).
-      const errorMessage = err.response?.data?.error || err.message;
+      // err.response?.data?.error carries the real n8n/Gemini failure message when
+      // callN8n's axios call threw (e.g. generate-email's 500) — always a plain string
+      // there. A Gmail-send failure throws a different shape though (googleapis'
+      // GaxiosError), where err.response.data.error is a whole object ({code, message,
+      // errors, status}), not a string — passing an object straight to Prisma's String?
+      // errorMessage field crashes with "Unknown argument `code`" (Prisma tries to read
+      // it as {set: ...} update syntax), which — uncaught here — was killing this whole
+      // loop on the first Gmail failure instead of just marking that one job FAILED.
+      const rawError = err.response?.data?.error;
+      const errorMessage = typeof rawError === 'string' ? rawError : rawError?.message || err.message || 'Unknown error';
       await prisma.bulkCampaignJob.update({
         where: { id: job.id },
         data: { status: 'FAILED', errorMessage, processedAt: new Date() },
