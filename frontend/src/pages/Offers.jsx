@@ -256,7 +256,9 @@ export default function Offers() {
           <p className="text-slate-400 text-sm">No offers yet.</p>
         ) : (
           <div className="space-y-2">
-            {offers.map((offer) => (
+            {offers
+              .filter((offer) => offer.id !== editingId)
+              .map((offer) => (
               <div
                 key={offer.id}
                 className="flex items-center justify-between border border-slate-200 rounded-lg p-3 bg-white hover:bg-slate-100 transition-colors"
