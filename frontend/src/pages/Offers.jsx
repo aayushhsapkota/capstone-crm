@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getOffers, createOffer, updateOffer, deleteOffer } from '../api/offers.js';
 import ImageUrlField from '../components/ImageUrlField.jsx';
 
@@ -23,6 +24,7 @@ export default function Offers() {
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState(false);
   const imageFieldRef = useRef(null);
+  const location = useLocation();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +43,16 @@ export default function Offers() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Clicking "Offers" in the sidebar while already on this page doesn't remount the
+  // component (same route, so React Router just re-renders in place) — an open edit
+  // form would otherwise sit there untouched. location.key changes on every
+  // navigation, including a same-path click, so it's what actually catches "the user
+  // asked to come back to the Offers page" and resets to the plain list view.
+  useEffect(() => {
+    setShowForm(false);
+    setEditingId(null);
+  }, [location.key]);
 
   const handleFieldChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
