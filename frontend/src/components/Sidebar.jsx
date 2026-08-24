@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Megaphone } from 'lucide-react';
 
 const links = [
   { to: '/queries', label: 'Query Manager' },
   { to: '/leads', label: 'Lead Review' },
-  { to: '/console', label: 'Businesses' },
+  { to: '/console', label: 'Console', icon: LayoutDashboard },
   { to: '/offers', label: 'Offers' },
-  { to: '/campaigns', label: 'Campaigns' },
+  { to: '/campaigns', label: 'Campaigns', icon: Megaphone },
 ];
 
 export default function Sidebar() {
@@ -21,12 +22,13 @@ export default function Sidebar() {
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `block px-4 py-2 text-sm rounded-md mx-2 mb-1 ${
+              `flex items-center justify-between gap-2.5 px-4 py-2 text-sm rounded-md mx-2 mb-1 ${
                 isActive ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-800'
               }`
             }
           >
             {link.label}
+            {link.icon && <link.icon className="w-4 h-4 shrink-0" />}
           </NavLink>
         ))}
       </nav>
