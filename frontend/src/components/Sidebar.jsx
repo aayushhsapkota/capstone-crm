@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/console', label: 'Businesses' },
   { to: '/queries', label: 'Query Manager' },
   { to: '/leads', label: 'Lead Review' },
-  { to: '/campaigns', label: 'Campaigns' },
+  { to: '/console', label: 'Businesses' },
   { to: '/offers', label: 'Offers' },
+  { to: '/campaigns', label: 'Campaigns' },
 ];
 
 export default function Sidebar() {
