@@ -68,6 +68,10 @@ carbonelle-crm/
 - A Google Cloud OAuth 2.0 client (Gmail API enabled, `gmail.send` + `userinfo.email` scopes)
 - API keys for Firecrawl and Google Gemini, configured on the n8n side
 
+A test Gmail account is available on request for anyone (e.g. a Google OAuth verification
+reviewer) who wants to try the Gmail connection flow without using their own account —
+credentials aren't published here; contact me directly.
+
 ### Install
 
 ```bash
