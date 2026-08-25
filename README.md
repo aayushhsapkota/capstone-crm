@@ -20,7 +20,7 @@ decisions were made.
 - **Bulk campaigns** — queue outreach across many businesses at once, rate-limited between sends
 - **Offers** — reusable promotions (discount, headline, CTA) that can be featured in a campaign
 - **Owner profile** — company info, services, and a hand-editable HTML email signature
-- **Notifications** — replies, send failures, and campaign completions surfaced in-app
+- **Notifications** — scrape completions, send failures, and campaign completions surfaced in-app
 
 ## Tech stack
 
@@ -110,7 +110,8 @@ All live in `backend/.env` (gitignored). None of these are read by the frontend 
 | `N8N_WEBHOOK_SCRAPE_SEARCH`, `N8N_WEBHOOK_SCRAPE_WEBSITES`, `N8N_WEBHOOK_GENERATE_EMAIL`, `N8N_WEBHOOK_OWNER_PROFILE_SCRAPE`, `N8N_WEBHOOK_BUSINESS_SCRAPE` | Webhook path IDs, one per n8n workflow |
 | `N8N_CALLBACK_SECRET` | Shared secret n8n sends back as `X-N8N-Secret` on callbacks |
 | `ENCRYPTION_KEY` | 32 random bytes (hex) used to encrypt Gmail OAuth tokens at rest |
-| `ADMIN_RESET_SECRET` | Header secret required to call the "wipe everything" admin endpoint — leave unset to disable it entirely |
+| `ADMIN_RESET_SECRET` | Header secret required to call the private "wipe everything" admin endpoint — leave unset to disable it entirely |
+| `PUBLIC_DEMO_RESET_ENABLED` | Set to `true` to enable the public, no-auth "start fresh?" reset any visitor can trigger from the Console page — leave unset on any non-demo deployment |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | From your Google Cloud OAuth client |
 
 `frontend/.env.production` needs one variable: `VITE_API_BASE_URL` (the backend's public
@@ -135,3 +136,22 @@ write affects live data immediately. Schema changes should be generated as a mig
 non-interactive environment, since `migrate dev` refuses to run non-interactively) and applied
 through the normal deploy pipeline (`prisma migrate deploy`) rather than run directly against
 the shared database from a local machine.
+
+## Future Improvements
+
+- **Move outreach sending off the Gmail API, onto a dedicated transactional email provider**
+  (e.g. Brevo, SendGrid, Amazon SES). Google's OAuth verification rejected this app specifically
+  because cold outreach — emailing people who never opted in — isn't a use case Google will
+  approve for the Gmail API, no matter how the consent screen/scopes/privacy policy are set up.
+  A provider built for bulk/transactional sending sidesteps that review entirely (API key instead
+  of OAuth, no Google verification needed), at the cost of losing the "sent from your own Gmail"
+  feel — the "From" address becomes a domain you verify with the provider (SPF/DKIM DNS records),
+  though replies can still be routed to your own inbox. Note this only removes *Google's* review
+  requirement — the underlying responsibility to send outreach lawfully and respectfully (working
+  unsubscribe links, accurate sender identification, compliance with regimes like Australia's Spam
+  Act) still applies regardless of which provider sends the mail.
+- **Reply tracking isn't actually wired up yet.** `POST /api/webhooks/gmail-reply` and the
+  `REPLY_RECEIVED` notification type both exist in the backend, but nothing calls that endpoint —
+  it's meant to be triggered by an n8n workflow watching the inbox for replies, which was never
+  built. It also can't work with the current `gmail.send`-only OAuth scope, which has no inbox
+  read access at all; supporting it would mean requesting a broader (more sensitive) scope.
