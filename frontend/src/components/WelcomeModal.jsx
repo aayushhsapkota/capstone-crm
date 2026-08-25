@@ -16,11 +16,16 @@ export default function WelcomeModal() {
     setDismissed(true);
   };
 
-  // Real, derived completion (not just "dismissed once") is what actually gates this —
-  // a fresh browser opening an already-configured instance shouldn't see a welcome
-  // screen for a setup that's already done, and loading avoids a flash of the modal
-  // before the first profile/integrations fetch resolves.
-  if (loading || dismissed || (profileDone && gmailDone)) return null;
+  // Only for a genuinely blank-slate visitor — neither step done yet. Someone who's
+  // already completed one of the two has clearly already engaged; the checklist alone
+  // (SetupChecklist, which keeps its own separate "either step still pending" gate)
+  // is enough of a nudge for them, without the full "Welcome" treatment again. This
+  // also narrows how often this can stack visually with DemoResetModal, which shows
+  // whenever there's leftover business data regardless of profile/Gmail state — this
+  // way, only a visitor who's touched neither profile nor Gmail sees both at once,
+  // not any partially-set-up one too. loading avoids a flash of the modal before the
+  // first profile/integrations fetch resolves.
+  if (loading || dismissed || profileDone || gmailDone) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
