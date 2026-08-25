@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSetupStatus } from '../hooks/useSetupStatus.js';
+import { useHasBusinessData } from '../hooks/useHasBusinessData.js';
 
 const DISMISSED_KEY = 'capstone_welcome_dismissed';
 
@@ -9,6 +10,7 @@ const DISMISSED_KEY = 'capstone_welcome_dismissed';
 // its own whether there's anything to show.
 export default function WelcomeModal() {
   const { profileDone, gmailDone, loading } = useSetupStatus();
+  const hasBusinessData = useHasBusinessData();
   const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(DISMISSED_KEY) === 'true');
 
   const handleDismiss = () => {
@@ -16,16 +18,16 @@ export default function WelcomeModal() {
     setDismissed(true);
   };
 
-  // Only for a genuinely blank-slate visitor — neither step done yet. Someone who's
-  // already completed one of the two has clearly already engaged; the checklist alone
-  // (SetupChecklist, which keeps its own separate "either step still pending" gate)
-  // is enough of a nudge for them, without the full "Welcome" treatment again. This
-  // also narrows how often this can stack visually with DemoResetModal, which shows
-  // whenever there's leftover business data regardless of profile/Gmail state — this
-  // way, only a visitor who's touched neither profile nor Gmail sees both at once,
-  // not any partially-set-up one too. loading avoids a flash of the modal before the
-  // first profile/integrations fetch resolves.
-  if (loading || dismissed || profileDone || gmailDone) return null;
+  // Only for a genuinely blank-slate visitor: neither profile nor Gmail set up, and no
+  // business data left behind either. That last check is what makes this mutually
+  // exclusive with DemoResetModal (Console page, shown whenever business data exists,
+  // regardless of profile/Gmail state) by construction, rather than just less likely to
+  // overlap with it — someone can reach real business data via Query Manager/Lead
+  // Review or "+ Add Business" without ever touching profile or Gmail, so that overlap
+  // was a real path, not just a theoretical one. hasBusinessData starts `null` while its
+  // own fetch is in flight, so it's folded into the same loading check rather than ever
+  // treated as "false" prematurely.
+  if (loading || hasBusinessData === null || dismissed || profileDone || gmailDone || hasBusinessData) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
