@@ -68,9 +68,15 @@ carbonelle-crm/
 - A Google Cloud OAuth 2.0 client (Gmail API enabled, `gmail.send` + `userinfo.email` scopes)
 - API keys for Firecrawl and Google Gemini, configured on the n8n side
 
-A test Gmail account is available on request for anyone (e.g. a Google OAuth verification
-reviewer) who wants to try the Gmail connection flow without using their own account —
-credentials aren't published here; contact me directly.
+### Test Gmail account
+
+If you'd rather not connect your own Gmail account just to try the app, please use this
+account — currently the only one permitted for testing purposes:
+
+- **Email:** `capstonecrm026@gmail.com`
+- **Password:** `Capstone2026`
+
+This account was created solely for testing this app and isn't used for anything else.
 
 ### Install
 
@@ -135,11 +141,7 @@ time — updating it requires a fresh `vite build`, not just a config change.
 
 `DATABASE_URL` in local `backend/.env` points at the same Supabase database production uses.
 There is no separate dev database. Any local `prisma db push`, `prisma migrate dev`, or direct
-write affects live data immediately. Schema changes should be generated as a migration file
-(`prisma migrate diff --from-schema-datasource ... --to-schema-datamodel ...` in a
-non-interactive environment, since `migrate dev` refuses to run non-interactively) and applied
-through the normal deploy pipeline (`prisma migrate deploy`) rather than run directly against
-the shared database from a local machine.
+write affects live data immediately. 
 
 ## Future Improvements
 
