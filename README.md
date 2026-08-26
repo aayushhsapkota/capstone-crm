@@ -131,11 +131,12 @@ time — updating it requires a fresh `vite build`, not just a config change.
 ## Deployment
 
 - **Frontend** — Cloudflare Pages, built via `vite build`
-- **Backend** — an EC2 instance running the Express app under pm2, deployed by a GitHub Action
-  that triggers on pushes touching `backend/**`: `git pull`, `npm install`, `prisma migrate
-  deploy`, `prisma generate`, `pm2 reload`
+- **Backend** — an Amazon EC2 instance running the Express app under pm2, sitting behind an
+  Nginx reverse proxy (SSL certificates via Let's Encrypt/Certbot). Deployed through a CI/CD
+  GitHub Action that triggers on pushes touching `backend/**`: `git pull`, `npm install`,
+  `prisma migrate deploy`, `prisma generate`, `pm2 reload`
 - **Database** — Supabase Postgres
-- **Automation** — n8n running on the same EC2 instance
+- **Automation** — n8n, self-hosted via Docker on a separate Amazon EC2 instance
 
 ### Important: local dev and production share one database
 
