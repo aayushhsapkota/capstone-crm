@@ -5,8 +5,8 @@ scrapes structured details from their public websites, and sends personalized ou
 through a Gmail account you connect and control — replacing a manual Google Sheets + copy-paste
 email workflow.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for how the pieces fit together and why certain
-decisions were made.
+<!-- See [ARCHITECTURE.md](./ARCHITECTURE.md) for how the pieces fit together and why certain
+decisions were made. -->
 
 ## Features
 
@@ -127,6 +127,19 @@ All live in `backend/.env` (gitignored). None of these are read by the frontend 
 `frontend/.env.production` needs one variable: `VITE_API_BASE_URL` (the backend's public
 `/api` base, e.g. `https://api.yourdomain.com/api`). Vite bakes this into the build at compile
 time — updating it requires a fresh `vite build`, not just a config change.
+
+## File uploads
+
+Owner logo, hero image, and offer images are uploaded through **`POST /api/uploads`** —
+`multipart/form-data`, one `file` field, handled by **Multer**.
+
+- `multer.diskStorage` writes to `backend/uploads/` with a randomized filename; `express.static`
+  serves it back at `/uploads/<filename>`.
+- Only PNG/JPEG/GIF/WEBP, max 5 MB — enforced by Multer's `fileFilter` and `limits`.
+- The response is an absolute URL, stored on `OwnerProfile.logoUrl` / `heroImageUrl` or
+  `Offer.imageUrl` (which also accept an external URL).
+- `deleteUploadedFileIfLocal()` (`backend/src/lib/uploads.js`) removes the old file when an image
+  is replaced or its record deleted — local uploads only, external URLs untouched.
 
 ## Deployment
 
