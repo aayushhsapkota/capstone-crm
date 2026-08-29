@@ -64,7 +64,10 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-h-[28rem] flex flex-col bg-white border border-slate-200 rounded-lg shadow-lg z-50 sm:w-96">
+        // Mobile: pinned to the viewport (fixed, inset-x-2) so it can't be clipped by
+        // the bell button not sitting flush against the screen edge. sm+: the original
+        // dropdown anchored to the button's right edge.
+        <div className="fixed left-2 right-2 top-[4.75rem] max-h-[calc(100vh-6rem)] flex flex-col bg-white border border-slate-200 rounded-lg shadow-lg z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 sm:max-h-[28rem]">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200">
             <span className="text-sm font-semibold text-slate-700">Notifications</span>
             {unreadCount > 0 && (
