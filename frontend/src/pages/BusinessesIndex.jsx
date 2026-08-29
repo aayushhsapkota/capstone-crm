@@ -167,7 +167,7 @@ export default function BusinessesIndex() {
 
   return (
     <div>
-      <DemoResetModal hasData={total > 0} />
+      <DemoResetModal hasData={total > 0} loading={loading} />
       <SetupChecklist />
 
       <h1 className="text-2xl font-semibold text-slate-800">Businesses</h1>

@@ -1,30 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { resetDemoData } from '../api/admin.js';
 
-const PROMPTED_KEY = 'capstone_demo_reset_prompted';
+const CHECKED_KEY = 'capstone_demo_reset_checked';
 
-// Shown once per browser session, and only when there's actually data left behind to
-// clear — so a genuinely fresh instance never sees an offer to reset nothing.
-// sessionStorage rather than localStorage: each new visitor/session should be asked
-// again, unlike WelcomeModal's dismissal which is about not re-nagging the same visit.
-export default function DemoResetModal({ hasData }) {
-  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(PROMPTED_KEY) === 'true');
+// Offers to wipe leftover data — but only ever asks ONCE per browser, the very first
+// time it can honestly answer "is there anything here yet?". localStorage rather than
+// sessionStorage: this has to survive across sessions, not just the current tab, or a
+// visitor who set up their OWN profile/Gmail/businesses and later reopens the app would
+// get asked to reset data that's now genuinely theirs, not a previous visitor's leftovers.
+export default function DemoResetModal({ hasData, loading }) {
+  const [dismissed, setDismissed] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [error, setError] = useState('');
+  // Has this browser's one-time check already happened — on an earlier visit (read
+  // from localStorage), or, once `loading` first resolves, right now.
+  const [checked, setChecked] = useState(() => localStorage.getItem(CHECKED_KEY) === 'true');
+  // Frozen the instant `checked` flips, capturing whatever hasData was AT THAT exact
+  // moment — so hasData changing afterward (the visitor adding their own data,
+  // without ever navigating away) can't retroactively make this eligible again.
+  const [eligible, setEligible] = useState(false);
 
-  if (!hasData || dismissed) return null;
+  useEffect(() => {
+    if (checked || loading) return;
+    localStorage.setItem(CHECKED_KEY, 'true');
+    setEligible(hasData);
+    setChecked(true);
+  }, [checked, loading, hasData]);
 
-  const handleDismiss = () => {
-    sessionStorage.setItem(PROMPTED_KEY, 'true');
-    setDismissed(true);
-  };
+  if (!eligible || dismissed) return null;
+
+  const handleDismiss = () => setDismissed(true);
 
   const handleReset = async () => {
     setResetting(true);
     setError('');
     try {
       await resetDemoData();
-      sessionStorage.setItem(PROMPTED_KEY, 'true');
       // A full reload rather than manually refetching — the wipe touches everything
       // (owner profile, businesses, Gmail connection), and every context/page that
       // holds state needs to see the clean slate, not just this one component.
