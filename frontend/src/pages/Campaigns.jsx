@@ -44,14 +44,14 @@ export default function Campaigns() {
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-800">Campaigns</h1>
           <p className="text-slate-500 mt-1">Bulk campaign list and progress.</p>
         </div>
         <button
           onClick={() => navigate('/console')}
-          className="px-4 py-2 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700"
+          className="self-start px-4 py-2 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700 sm:self-auto"
         >
           + New Campaign
         </button>

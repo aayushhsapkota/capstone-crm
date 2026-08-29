@@ -253,7 +253,7 @@ export default function ProfileSettings() {
             {fetchError}
           </div>
         )}
-        <div className="relative mt-3 flex gap-2">
+        <div className="relative mt-3 flex flex-col gap-2 sm:flex-row">
           <input
             type="text"
             value={fetchUrl}
@@ -275,7 +275,7 @@ export default function ProfileSettings() {
         <h2 className="text-sm font-semibold text-slate-800">Company Information</h2>
         <p className="text-xs text-slate-500 mt-0.5">Shown in generated emails and your signature.</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs text-slate-500 mb-1">Company Name</label>
             <input
@@ -316,7 +316,7 @@ export default function ProfileSettings() {
               className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <ImageUrlField
               ref={logoFieldRef}
               label="Logo"
@@ -325,7 +325,7 @@ export default function ProfileSettings() {
               placeholder="https://example.com/logo.png"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <ImageUrlField
               ref={heroFieldRef}
               label="Intro Email Header Image"
@@ -357,20 +357,22 @@ export default function ProfileSettings() {
           ) : (
             serviceRows.map((row) => (
               <div key={row._id} className="flex items-start gap-2">
-                <input
-                  type="text"
-                  value={row.service}
-                  onChange={(e) => handleServiceChange(row._id, 'service', e.target.value)}
-                  placeholder="e.g. Teeth Whitening"
-                  className="w-1/3 border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-                />
-                <input
-                  type="text"
-                  value={row.description}
-                  onChange={(e) => handleServiceChange(row._id, 'description', e.target.value)}
-                  placeholder="Short description shown in the email"
-                  className="flex-1 border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-                />
+                <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    value={row.service}
+                    onChange={(e) => handleServiceChange(row._id, 'service', e.target.value)}
+                    placeholder="e.g. Teeth Whitening"
+                    className="w-full border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 sm:w-1/3"
+                  />
+                  <input
+                    type="text"
+                    value={row.description}
+                    onChange={(e) => handleServiceChange(row._id, 'description', e.target.value)}
+                    placeholder="Short description shown in the email"
+                    className="w-full border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 sm:flex-1"
+                  />
+                </div>
                 <button
                   onClick={() => handleRemoveService(row._id)}
                   className="text-slate-400 hover:text-red-600 text-sm px-2 py-1.5"
@@ -452,8 +454,10 @@ export default function ProfileSettings() {
       </section>
 
       {/* Sticky so Save stays reachable without hunting for it at the bottom of a long
-          page — this page's whole point is to hold more than a compact form comfortably. */}
-      <div className="fixed bottom-0 left-56 right-0 bg-white border-t border-slate-200 px-6 py-3.5 flex items-center gap-3 z-10">
+          page — this page's whole point is to hold more than a compact form comfortably.
+          left offset tracks the sidebar, which is only a static column at md+ (a drawer
+          below that, so left-0 there). */}
+      <div className="fixed bottom-0 left-0 right-0 md:left-56 bg-white border-t border-slate-200 px-4 md:px-6 py-3.5 flex items-center gap-3 z-10">
         {saveError && (
           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-1.5">
             {saveError}

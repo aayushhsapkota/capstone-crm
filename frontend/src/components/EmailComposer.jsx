@@ -160,8 +160,8 @@ export default function EmailComposer({ businessId, businessEmail, onSent }) {
           style={{ minHeight: '7.5rem', maxHeight: '20rem' }}
         />
       </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <OfferSelector value={offerId} onChange={setOfferId} />
           {services.length > 0 && (
             <div className="relative" ref={servicesRef}>
@@ -202,7 +202,7 @@ export default function EmailComposer({ businessId, businessEmail, onSent }) {
         <button
           onClick={handleSend}
           disabled={sending || !draft.subject.trim() || bodyEmpty}
-          className="px-4 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700 disabled:opacity-50"
+          className="ml-auto px-4 py-1.5 text-sm bg-slate-800 text-white rounded-md hover:bg-slate-700 disabled:opacity-50"
         >
           {sending ? 'Sending…' : 'Send'}
         </button>

@@ -63,15 +63,15 @@ export default function BusinessThread({ businessId }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] min-w-0">
+    <div className="flex flex-col h-[calc(100vh-5.5rem)] min-w-0 md:h-[calc(100vh-6rem)]">
       <Link to="/console" className="text-sm text-blue-600 hover:underline">
         ← Back to Businesses
       </Link>
 
-      <div className="flex items-center justify-between pb-3 mt-2 border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold text-slate-800">{business.name}</h1>
-          <Link to={`/businesses/${business.id}`} className="text-xs text-blue-600 hover:underline">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mt-2 border-b border-slate-200">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xl font-semibold text-slate-800 truncate">{business.name}</h1>
+          <Link to={`/businesses/${business.id}`} className="text-xs text-blue-600 hover:underline shrink-0">
             Edit profile
           </Link>
         </div>
