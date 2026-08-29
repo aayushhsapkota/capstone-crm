@@ -30,8 +30,8 @@ export default function WelcomeModal() {
   if (loading || hasBusinessData === null || dismissed || profileDone || gmailDone || hasBusinessData) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center gap-2.5">
           <img src="/logo.png" alt="" className="w-9 h-9 rounded-lg" />
           <span className="text-base font-semibold text-slate-800">Capstone CRM</span>

@@ -59,8 +59,8 @@ export default function AddBusinessModal({ onAdded, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4">
         <h2 className="text-lg font-semibold text-slate-800">Add Business</h2>
 
         <div>
@@ -93,7 +93,7 @@ export default function AddBusinessModal({ onAdded, onClose }) {
         {form && (
           <>
             <p className="text-xs text-slate-500">Review and edit before adding — extraction can be wrong.</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {BUSINESS_FIELDS.map(({ key, label }) => (
                 <div key={key}>
                   <label className="block text-xs text-slate-500 mb-1">{label}</label>

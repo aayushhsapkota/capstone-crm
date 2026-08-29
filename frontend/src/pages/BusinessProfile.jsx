@@ -149,7 +149,7 @@ export default function BusinessProfile() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {FIELDS.map(({ key, label }) => (
           <div key={key}>
             <label className="block text-xs text-slate-500 mb-1">{label}</label>
@@ -179,24 +179,26 @@ export default function BusinessProfile() {
             <p className="text-slate-400 text-xs">No custom fields.</p>
           ) : (
             visibleAttrRows.map((row) => (
-              <div key={row._id} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={row.key}
-                  onChange={(e) => handleAttrChange(row._id, 'key', e.target.value)}
-                  placeholder="Field name"
-                  className="w-1/3 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
-                />
-                <input
-                  type="text"
-                  value={row.value}
-                  onChange={(e) => handleAttrChange(row._id, 'value', e.target.value)}
-                  placeholder="Value"
-                  className="flex-1 border border-slate-300 rounded-md px-2 py-1.5 text-sm"
-                />
+              <div key={row._id} className="flex items-start gap-2">
+                <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    value={row.key}
+                    onChange={(e) => handleAttrChange(row._id, 'key', e.target.value)}
+                    placeholder="Field name"
+                    className="w-full border border-slate-300 rounded-md px-2 py-1.5 text-sm sm:w-1/3"
+                  />
+                  <input
+                    type="text"
+                    value={row.value}
+                    onChange={(e) => handleAttrChange(row._id, 'value', e.target.value)}
+                    placeholder="Value"
+                    className="w-full border border-slate-300 rounded-md px-2 py-1.5 text-sm sm:flex-1"
+                  />
+                </div>
                 <button
                   onClick={() => handleRemoveAttr(row._id)}
-                  className="text-slate-400 hover:text-red-600 text-sm px-2"
+                  className="text-slate-400 hover:text-red-600 text-sm px-2 py-1.5"
                   aria-label="Remove field"
                 >
                   ✕

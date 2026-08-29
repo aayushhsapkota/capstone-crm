@@ -94,7 +94,7 @@ export default function IntegrationsSettings() {
       )}
 
       <section className="mt-6 bg-white border border-slate-200 rounded-lg p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="shrink-0 w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
@@ -123,14 +123,14 @@ export default function IntegrationsSettings() {
             <button
               onClick={handleDisconnect}
               disabled={disconnecting}
-              className="text-xs px-3 py-1.5 border border-slate-300 rounded-md text-red-600 hover:bg-red-50 disabled:opacity-50 shrink-0"
+              className="self-start text-xs px-3 py-1.5 border border-slate-300 rounded-md text-red-600 hover:bg-red-50 disabled:opacity-50 shrink-0"
             >
               {disconnecting ? 'Disconnecting…' : 'Disconnect'}
             </button>
           ) : (
             <a
               href={GMAIL_CONNECT_URL}
-              className="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-md hover:bg-slate-700 shrink-0"
+              className="self-start text-xs px-3 py-1.5 bg-slate-800 text-white rounded-md hover:bg-slate-700 shrink-0"
             >
               Connect Gmail
             </a>

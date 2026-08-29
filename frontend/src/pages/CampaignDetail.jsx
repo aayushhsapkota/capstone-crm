@@ -58,7 +58,8 @@ export default function CampaignDetail() {
 
       <div className="mt-6">
         <h3 className="text-sm font-semibold text-slate-700 mb-3">Jobs</h3>
-        <table className="w-full text-sm border-collapse">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm border-collapse">
           <thead>
             <tr className="text-left text-slate-500 border-b border-slate-200">
               <th className="py-2 pr-4 font-medium">Business</th>
@@ -96,6 +97,7 @@ export default function CampaignDetail() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

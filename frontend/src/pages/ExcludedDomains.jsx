@@ -85,7 +85,7 @@ export default function ExcludedDomains() {
 
       <div className="mt-6 bg-white border border-slate-200 rounded-lg overflow-hidden">
         <div className="p-4 border-b border-slate-100">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
               value={newSite}
@@ -132,7 +132,7 @@ export default function ExcludedDomains() {
                 <button
                   onClick={() => handleRemove(site)}
                   disabled={removingSite === site}
-                  className="text-xs text-slate-400 hover:text-red-600 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity disabled:opacity-50"
+                  className="text-xs text-slate-400 hover:text-red-600 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity disabled:opacity-50"
                   aria-label={`Remove ${site}`}
                 >
                   {removingSite === site ? 'Removing…' : 'Remove'}

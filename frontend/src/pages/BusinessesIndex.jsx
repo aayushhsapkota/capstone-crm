@@ -173,7 +173,7 @@ export default function BusinessesIndex() {
       <h1 className="text-2xl font-semibold text-slate-800">Businesses</h1>
       <p className="text-slate-500 mt-1">Every business you've scraped or added, in one place.</p>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {/* h-9 on every control in this row — items-center alone leaves them at the
             mercy of each element's own natural sizing, and a native <select>'s height
             doesn't always match an <input>/<button> pixel-for-pixel across browsers
@@ -184,7 +184,7 @@ export default function BusinessesIndex() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search businesses…"
-          className="w-64 h-9 border border-slate-300 rounded-md px-3 text-sm"
+          className="w-full h-9 border border-slate-300 rounded-md px-3 text-sm sm:w-64"
         />
         <select
           value={filter}
@@ -254,74 +254,137 @@ export default function BusinessesIndex() {
         ) : businesses.length === 0 ? (
           <p className="text-slate-400 text-sm">No businesses found.</p>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-4 font-medium w-8">
-                  <input
-                    ref={selectAllRef}
-                    type="checkbox"
-                    checked={allOnPageChecked}
-                    onChange={toggleSelectAllOnPage}
-                    aria-label="Select all on this page"
-                  />
-                </th>
-                <th className="py-2 pr-4 font-medium">Name</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 pr-4 font-medium">Location</th>
-                <th className="py-2 pr-4 font-medium">Specialisation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {businesses.map((b) => (
-                <tr
-                  key={b.id}
-                  onClick={() => navigate(`/console?businessId=${b.id}`)}
-                  className="border-b border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <td className="py-2 pr-4">
+          <>
+            {/* Mobile (<md): stacked cards — a 5-column table is unreadable on a phone,
+                and this is the app's most-used list. The table below takes over at md+. */}
+            <div className="md:hidden">
+              <label className="flex items-center gap-2 px-1 pb-2 text-xs text-slate-500">
+                <input
+                  type="checkbox"
+                  checked={allOnPageChecked}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someOnPageChecked;
+                  }}
+                  onChange={toggleSelectAllOnPage}
+                />
+                Select all on this page
+              </label>
+              <ul className="space-y-2">
+                {businesses.map((b) => (
+                  <li
+                    key={b.id}
+                    onClick={() => navigate(`/console?businessId=${b.id}`)}
+                    className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={checkedIds.has(b.id)}
                       onClick={(e) => e.stopPropagation()}
                       onChange={() => toggleChecked(b.id)}
+                      className="mt-1 shrink-0"
                     />
-                  </td>
-                  <td className="py-2 pr-4 text-slate-800">
-                    <div className="flex items-center gap-2">
-                      <span>{b.name}</span>
-                      {b.unsubscribed && (
-                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full whitespace-nowrap">
-                          Unsubscribed
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-slate-800">{b.name}</span>
+                        {b.unsubscribed && (
+                          <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full whitespace-nowrap">
+                            Unsubscribed
+                          </span>
+                        )}
+                        {!b.email && (
+                          <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                            No email
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span
+                          className={`text-xs font-medium rounded-full px-2.5 py-1 whitespace-nowrap ${
+                            STATUS_STYLES[b.status] ?? 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {b.status.replace(/_/g, ' ')}
                         </span>
-                      )}
-                      {!b.email && (
-                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
-                          No email
-                        </span>
+                        {b.location && <span className="text-xs text-slate-500">{b.location}</span>}
+                      </div>
+                      {b.specialisation && (
+                        <p className="mt-1 text-xs text-slate-500">{b.specialisation}</p>
                       )}
                     </div>
-                  </td>
-                  <td className="py-2 pr-4">
-                    <span
-                      className={`text-xs font-medium rounded-full px-2.5 py-1 whitespace-nowrap ${
-                        STATUS_STYLES[b.status] ?? 'bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      {b.status.replace(/_/g, ' ')}
-                    </span>
-                  </td>
-                  <td className="py-2 pr-4 text-slate-600">{b.location || '—'}</td>
-                  <td className="py-2 pr-4 text-slate-600">{b.specialisation || '—'}</td>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <table className="hidden w-full text-sm border-collapse md:table">
+              <thead>
+                <tr className="text-left text-slate-500 border-b border-slate-200">
+                  <th className="py-2 pr-4 font-medium w-8">
+                    <input
+                      ref={selectAllRef}
+                      type="checkbox"
+                      checked={allOnPageChecked}
+                      onChange={toggleSelectAllOnPage}
+                      aria-label="Select all on this page"
+                    />
+                  </th>
+                  <th className="py-2 pr-4 font-medium">Name</th>
+                  <th className="py-2 pr-4 font-medium">Status</th>
+                  <th className="py-2 pr-4 font-medium">Location</th>
+                  <th className="py-2 pr-4 font-medium">Specialisation</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {businesses.map((b) => (
+                  <tr
+                    key={b.id}
+                    onClick={() => navigate(`/console?businessId=${b.id}`)}
+                    className="border-b border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <td className="py-2 pr-4">
+                      <input
+                        type="checkbox"
+                        checked={checkedIds.has(b.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => toggleChecked(b.id)}
+                      />
+                    </td>
+                    <td className="py-2 pr-4 text-slate-800">
+                      <div className="flex items-center gap-2">
+                        <span>{b.name}</span>
+                        {b.unsubscribed && (
+                          <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full whitespace-nowrap">
+                            Unsubscribed
+                          </span>
+                        )}
+                        {!b.email && (
+                          <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                            No email
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span
+                        className={`text-xs font-medium rounded-full px-2.5 py-1 whitespace-nowrap ${
+                          STATUS_STYLES[b.status] ?? 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {b.status.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4 text-slate-600">{b.location || '—'}</td>
+                    <td className="py-2 pr-4 text-slate-600">{b.specialisation || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 
       {!loading && total > 0 && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-slate-400">{total} business{total === 1 ? '' : 'es'}</p>
           {totalPages > 1 && (
             <div className="flex items-center gap-2 text-xs">

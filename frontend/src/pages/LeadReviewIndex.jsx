@@ -68,7 +68,8 @@ export default function LeadReviewIndex() {
             No searches yet — run one in Query Manager to find new leads.
           </p>
         ) : (
-          <table className="w-full text-sm border-collapse">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px] text-sm border-collapse">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium">Query</th>
@@ -142,6 +143,7 @@ export default function LeadReviewIndex() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

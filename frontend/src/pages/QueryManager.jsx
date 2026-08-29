@@ -123,33 +123,35 @@ export default function QueryManager() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-6 flex gap-2 max-w-xl">
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-2 max-w-xl sm:flex-row">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="e.g. dental clinics in Sydney NSW"
-          className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
         />
-        <label className="flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
-          Results
-          <input
-            type="number"
-            min={1}
-            max={20}
-            value={limit}
-            onChange={(e) => setLimit(e.target.value)}
-            title="Number of results to fetch"
-            className="w-16 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-slate-400"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting || !text.trim()}
-          className="px-4 py-2 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700 disabled:opacity-50"
-        >
-          {submitting ? 'Running…' : 'Run Query'}
-        </button>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
+            Results
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+              title="Number of results to fetch"
+              className="w-16 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={submitting || !text.trim()}
+            className="ml-auto px-4 py-2 bg-slate-800 text-white text-sm rounded-md hover:bg-slate-700 disabled:opacity-50 sm:ml-0"
+          >
+            {submitting ? 'Running…' : 'Run Query'}
+          </button>
+        </div>
       </form>
 
       <div className="mt-8">
@@ -168,7 +170,8 @@ export default function QueryManager() {
         ) : queries.length === 0 ? (
           <p className="text-slate-400 text-sm">No queries yet.</p>
         ) : (
-          <table className="w-full text-sm border-collapse">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm border-collapse">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium">Query</th>
@@ -201,6 +204,7 @@ export default function QueryManager() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
