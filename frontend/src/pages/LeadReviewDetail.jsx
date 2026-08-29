@@ -291,7 +291,7 @@ export default function LeadReviewDetail({ queryId }) {
         // Persistent for as long as the batch is unresolved — unlike the toast, this
         // doesn't auto-dismiss, so it stays visible the whole time scraping is
         // actually happening in the background instead of just flashing briefly.
-        <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+        <div className="mt-4 flex flex-wrap items-center gap-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
           <LoadingSpinner className="w-4 h-4 text-amber-600" />
           <span className="text-sm text-amber-700">
             Scraping {scrapingIds.length} lead{scrapingIds.length === 1 ? '' : 's'} in the background…
@@ -306,7 +306,7 @@ export default function LeadReviewDetail({ queryId }) {
           </label>
         </div>
       ) : (
-        <div className="mt-4 flex items-center gap-3 px-3 py-2 bg-slate-100 rounded-md">
+        <div className="mt-4 flex flex-wrap items-center gap-3 px-3 py-2 bg-slate-100 rounded-md">
           <span className="text-sm text-slate-600">
             {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select leads to scrape'}
           </span>
@@ -350,7 +350,8 @@ export default function LeadReviewDetail({ queryId }) {
             {showFlagged ? 'No leads at all for this query.' : 'No leads to review — try "Show flagged".'}
           </p>
         ) : (
-          <table className="w-full text-sm border-collapse">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm border-collapse">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium w-8">
@@ -392,7 +393,7 @@ export default function LeadReviewDetail({ queryId }) {
                       href={r.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 hover:underline break-all"
                     >
                       {r.url}
                     </a>
@@ -450,11 +451,12 @@ export default function LeadReviewDetail({ queryId }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
       {!loading && total > 0 && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-slate-400">
             {total} {showFlagged ? `lead${total === 1 ? '' : 's'}` : 'selectable for scraping'}
           </p>
