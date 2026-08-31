@@ -11,11 +11,11 @@ const FEATURES = [
   },
   {
     title: 'Send outreach from your own Gmail',
-    description: "Generate personalized outreach emails and send them straight from your connected Gmail account — no separate mail server, no shared sending address.",
+    description: "Generate personalized outreach emails and send them straight from your connected Gmail account — no separate mail server.",
   },
   {
-    title: 'Track replies and campaigns',
-    description: 'See sent, replied, and bounced outreach in one place, and run bulk campaigns across many leads at once.',
+    title: 'Track outreach and run campaigns',
+    description: 'See what you\'ve sent to each lead in one place, and run bulk campaigns across many leads at once.',
   },
 ];
 
